@@ -107,14 +107,13 @@ npm run dev
 ### 4. Acesse o Sistema
 
 - **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:3001
+- **Backend API:** http://localhost:3333
 
 ## 👤 Usuário Padrão
 
 Após executar as migrações, você pode usar:
 
-- **Email:** admin@example.com
-- **Senha:** 123456
+- **Login:** Administrador (admin@juscrm.com / admin123), Advogado (joao@juscrm.com / lawyer123), Assistente (maria@juscrm.com / assistant123)
 
 ## 🎨 Interface do Sistema
 
