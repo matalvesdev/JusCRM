@@ -1,0 +1,401 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================================
+// MODELS DE USUÁRIO E AUTENTICAÇÃO
+// ================================
+
+enum UserRole {
+  ADMIN
+  LAWYER
+  ASSISTANT
+  CLIENT
+}
+
+enum AuthProvider {
+  GOOGLE
+  EMAIL
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  avatar    String?
+  role      UserRole @default(CLIENT)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Autenticação
+  password String?
+  provider AuthProvider @default(EMAIL)
+  providerId String?
+
+  // Relacionamentos
+  profile       LawyerProfile?
+  clientProfile ClientProfile?
+  refreshTokens RefreshToken[]
+  createdCases  Case[]         @relation("LawyerCases")
+  assignedCases Case[]         @relation("AssistantCases")
+  appointments  Appointment[]
+  documents     Document[]
+  activities    Activity[]
+  sentMessages  Message[]      @relation("SentMessages")
+  receivedMessages Message[]   @relation("ReceivedMessages")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model LawyerProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  oabNumber    String   @unique
+  oabState     String
+  specialties  String[] // Direito Trabalhista, Previdenciário, etc.
+  biography    String?
+  experience   Int?     // Anos de experiência
+  phone        String?
+  address      String?
+  city         String?
+  state        String?
+  zipCode      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("lawyer_profiles")
+}
+
+// ================================
+// MODELS DE CLIENTE
+// ================================
+
+enum ClientType {
+  INDIVIDUAL
+  COMPANY
+}
+
+model ClientProfile {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  type      ClientType @default(INDIVIDUAL)
+  
+  // Dados pessoais
+  cpf       String?    @unique
+  rg        String?
+  cnpj      String?    @unique
+  birthDate DateTime?
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  zipCode   String?
+  
+  // Dados profissionais
+  company     String?
+  position    String?
+  salary      Decimal?
+  workStart   DateTime?
+  workEnd     DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cases Case[]
+
+  @@map("client_profiles")
+}
+
+// ================================
+// MODELS DE PROCESSO/CASO
+// ================================
+
+enum CaseStatus {
+  DRAFT
+  ACTIVE
+  SUSPENDED
+  CLOSED
+  ARCHIVED
+}
+
+enum CaseType {
+  RESCISAO_INDIRETA
+  HORAS_EXTRAS
+  ADICIONAL_INSALUBRIDADE
+  ADICIONAL_PERICULOSIDADE
+  ASSEDIO_MORAL
+  ACIDENTE_TRABALHO
+  EQUIPARACAO_SALARIAL
+  DEMISSAO_SEM_JUSTA_CAUSA
+  FGTS
+  SEGURO_DESEMPREGO
+  OTHER
+}
+
+model Case {
+  id          String     @id @default(cuid())
+  number      String?    @unique // Número do processo judicial
+  title       String
+  description String?
+  type        CaseType
+  status      CaseStatus @default(DRAFT)
+  value       Decimal?   // Valor da causa
+  
+  // Relacionamentos
+  clientId    String
+  lawyerId    String
+  assistantId String?
+  
+  // Datas importantes
+  startDate   DateTime   @default(now())
+  endDate     DateTime?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client      ClientProfile @relation(fields: [clientId], references: [id])
+  lawyer      User          @relation("LawyerCases", fields: [lawyerId], references: [id])
+  assistant   User?         @relation("AssistantCases", fields: [assistantId], references: [id])
+  
+  documents   Document[]
+  appointments Appointment[]
+  activities  Activity[]
+  petitions   Petition[]
+  payments    Payment[]
+
+  @@map("cases")
+}
+
+// ================================
+// MODELS DE DOCUMENTO
+// ================================
+
+enum DocumentType {
+  CONTRACT
+  PROCURATION
+  EVIDENCE
+  PETITION
+  DECISION
+  PROTOCOL
+  OTHER
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  name        String
+  type        DocumentType
+  filename    String       // Nome do arquivo no storage
+  size        Int          // Tamanho em bytes
+  mimeType    String
+  url         String       // URL do arquivo no S3/storage
+  
+  // Relacionamentos
+  caseId      String?
+  uploadedById String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  case       Case? @relation(fields: [caseId], references: [id])
+  uploadedBy User  @relation(fields: [uploadedById], references: [id])
+
+  @@map("documents")
+}
+
+// ================================
+// MODELS DE PETIÇÃO (IA)
+// ================================
+
+enum PetitionStatus {
+  DRAFT
+  GENERATED
+  REVIEWED
+  FILED
+}
+
+model Petition {
+  id        String          @id @default(cuid())
+  title     String
+  content   String          // Conteúdo da petição gerada pela IA
+  prompt    String?         // Prompt usado para gerar a petição
+  status    PetitionStatus  @default(DRAFT)
+  
+  // Relacionamentos
+  caseId    String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id])
+
+  @@map("petitions")
+}
+
+// ================================
+// MODELS DE AGENDA/AUDIÊNCIA
+// ================================
+
+enum AppointmentType {
+  HEARING
+  MEETING
+  DEADLINE
+  CALL
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  title       String
+  description String?
+  type        AppointmentType
+  status      AppointmentStatus @default(SCHEDULED)
+  
+  // Data e horário
+  startDate   DateTime
+  endDate     DateTime
+  
+  // Links para videoconferência
+  meetingUrl  String?           // Zoom, Google Meet, etc.
+  meetingId   String?
+  
+  // Relacionamentos
+  caseId      String?
+  lawyerId    String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  case   Case? @relation(fields: [caseId], references: [id])
+  lawyer User  @relation(fields: [lawyerId], references: [id])
+
+  @@map("appointments")
+}
+
+// ================================
+// MODELS FINANCEIRO
+// ================================
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentType {
+  HONORARIUM
+  EXPENSE
+  REFUND
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  amount      Decimal
+  type        PaymentType
+  status      PaymentStatus @default(PENDING)
+  description String?
+  
+  // Datas
+  dueDate     DateTime
+  paidDate    DateTime?
+  
+  // Stripe integration
+  stripePaymentId String?
+  
+  // Relacionamentos  
+  caseId      String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  case Case @relation(fields: [caseId], references: [id])
+
+  @@map("payments")
+}
+
+// ================================
+// MODELS DE ATIVIDADE/LOG
+// ================================
+
+enum ActivityType {
+  CASE_CREATED
+  CASE_UPDATED
+  DOCUMENT_UPLOADED
+  APPOINTMENT_SCHEDULED
+  PETITION_GENERATED
+  PAYMENT_RECEIVED
+  USER_LOGIN
+  OTHER
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  title       String
+  description String?
+  metadata    Json?        // Dados adicionais em JSON
+  
+  // Relacionamentos
+  userId      String
+  caseId      String?
+  
+  createdAt DateTime @default(now())
+
+  user User  @relation(fields: [userId], references: [id])
+  case Case? @relation(fields: [caseId], references: [id])
+
+  @@map("activities")
+}
+
+// ================================
+// MODELS DE MENSAGEM/COMUNICAÇÃO
+// ================================
+
+model Message {
+  id       String  @id @default(cuid())
+  subject  String
+  content  String
+  isRead   Boolean @default(false)
+  
+  // Relacionamentos
+  senderId    String
+  receiverId  String
+  
+  createdAt DateTime @default(now())
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@map("messages")
+}
