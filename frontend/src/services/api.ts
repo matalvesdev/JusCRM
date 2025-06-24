@@ -1,87 +1,197 @@
 import axios from "axios";
 import type { AxiosInstance, AxiosResponse } from "axios";
-import type { LoginRequest, LoginResponse, ApiResponse, User } from "@/types";
+import type {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  ApiResponse,
+  User,
+} from "@/types";
 
 class ApiService {
   private api: AxiosInstance;
-
   constructor() {
     this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001/api",
+      baseURL: import.meta.env.VITE_API_URL || "http://localhost:3333/api",
       headers: {
         "Content-Type": "application/json",
       },
+      timeout: 10000, // 10 segundos de timeout
     });
+
+    console.log(
+      "[API] Configurando cliente axios com baseURL:",
+      import.meta.env.VITE_API_URL || "http://localhost:3333/api"
+    );
 
     // Interceptor para adicionar token de autenticação
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem("auth_token");
+        console.log("[API] Request interceptor - Token encontrado:", !!token);
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log(
+          "[API] Fazendo requisição para:",
+          config.url,
+          "com método:",
+          config.method
+        );
         return config;
       },
       (error) => {
+        console.error("[API] Erro no request interceptor:", error);
         return Promise.reject(error);
       }
-    );
-
-    // Interceptor para lidar com respostas
+    ); // Interceptor para lidar com respostas
     this.api.interceptors.response.use(
       (response: AxiosResponse) => {
+        console.log("[API] Resposta recebida:", response.status, response.data);
         return response;
       },
       (error) => {
+        console.error(
+          "[API] Erro na resposta:",
+          error.response?.status,
+          error.response?.data || error.message
+        );
+
         if (error.response?.status === 401) {
-          // Token expirado ou inválido
+          console.log(
+            "[API] Token inválido ou expirado (401). Limpando localStorage..."
+          );
           localStorage.removeItem("auth_token");
-          localStorage.removeItem("user");
-          window.location.href = "/login";
         }
+
+        // Log detalhado do erro para debug
+        if (error.response) {
+          console.error("[API] Erro da resposta do servidor:", {
+            status: error.response.status,
+            data: error.response.data,
+            url: error.config?.url,
+            method: error.config?.method,
+          });
+        } else if (error.request) {
+          console.error(
+            "[API] Erro de rede - sem resposta do servidor:",
+            error.request
+          );
+        } else {
+          console.error(
+            "[API] Erro na configuração da requisição:",
+            error.message
+          );
+        }
+
         return Promise.reject(error);
       }
     );
   }
-
   // Métodos de autenticação
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.api.post<ApiResponse<LoginResponse>>(
-      "/auth/login",
-      credentials
-    );
-    return response.data.data;
+    console.log("[API] Tentando fazer login com:", credentials.email);
+    const response = await this.api.post<
+      LoginResponse | ApiResponse<LoginResponse>
+    >("/auth/login", credentials);
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const data = "data" in response.data ? response.data.data : response.data;
+    console.log("[API] Resposta do login:", data);
+    return data as LoginResponse;
   }
 
   async logout(): Promise<void> {
-    await this.api.post("/auth/logout");
+    console.log("[API] Fazendo logout...");
+    try {
+      await this.api.post("/auth/logout");
+    } catch (error) {
+      console.warn("[API] Erro no logout (será ignorado):", error);
+    }
     localStorage.removeItem("auth_token");
-    localStorage.removeItem("user");
   }
+
   async me(): Promise<User> {
-    const response = await this.api.get<ApiResponse<User>>("/auth/me");
-    return response.data.data;
+    console.log("[API] Verificando dados do usuário atual...");
+    const response = await this.api.get<User | ApiResponse<User>>("/auth/me");
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const data = "data" in response.data ? response.data.data : response.data;
+    console.log("[API] Dados do usuário recebidos:", data);
+    return data as User;
+  }
+
+  async register(userData: RegisterRequest): Promise<LoginResponse> {
+    console.log("[API] Tentando fazer registro com:", userData.email);
+    const response = await this.api.post<
+      LoginResponse | ApiResponse<LoginResponse>
+    >("/auth/register", userData);
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const data = "data" in response.data ? response.data.data : response.data;
+    console.log("[API] Resposta do registro:", data);
+    return data as LoginResponse;
   }
 
   // Métodos genéricos para CRUD
   async get<T>(endpoint: string): Promise<T> {
-    const response = await this.api.get<ApiResponse<T>>(endpoint);
-    return response.data.data;
+    console.log("[API] GET request para:", endpoint);
+    const response = await this.api.get<T | ApiResponse<T>>(endpoint);
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const data =
+      response.data &&
+      typeof response.data === "object" &&
+      "data" in response.data
+        ? (response.data as ApiResponse<T>).data
+        : response.data;
+
+    return data as T;
   }
 
   async post<T>(endpoint: string, data: unknown): Promise<T> {
-    const response = await this.api.post<ApiResponse<T>>(endpoint, data);
-    return response.data.data;
+    console.log("[API] POST request para:", endpoint, "com dados:", data);
+    const response = await this.api.post<T | ApiResponse<T>>(endpoint, data);
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const responseData =
+      response.data &&
+      typeof response.data === "object" &&
+      "data" in response.data
+        ? (response.data as ApiResponse<T>).data
+        : response.data;
+
+    return responseData as T;
   }
 
   async put<T>(endpoint: string, data: unknown): Promise<T> {
-    const response = await this.api.put<ApiResponse<T>>(endpoint, data);
-    return response.data.data;
+    console.log("[API] PUT request para:", endpoint, "com dados:", data);
+    const response = await this.api.put<T | ApiResponse<T>>(endpoint, data);
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const responseData =
+      response.data &&
+      typeof response.data === "object" &&
+      "data" in response.data
+        ? (response.data as ApiResponse<T>).data
+        : response.data;
+
+    return responseData as T;
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    const response = await this.api.delete<ApiResponse<T>>(endpoint);
-    return response.data.data;
+    console.log("[API] DELETE request para:", endpoint);
+    const response = await this.api.delete<T | ApiResponse<T>>(endpoint);
+
+    // Verifica se a resposta tem a estrutura { data: ... } ou é direta
+    const responseData =
+      response.data &&
+      typeof response.data === "object" &&
+      "data" in response.data
+        ? (response.data as ApiResponse<T>).data
+        : response.data;
+
+    return responseData as T;
   }
 
   // Métodos específicos para recursos

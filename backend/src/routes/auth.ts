@@ -210,21 +210,50 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       }
     }
   );
-
   // Get current user
   fastify.get(
     "/me",
     {
+      preHandler: async (request, reply) => {
+        // Usar o middleware de autenticação
+        const token = request.headers.authorization?.replace("Bearer ", "");
+        if (!token) {
+          return reply.status(401).send({
+            error: {
+              message: "Token de acesso requerido",
+              code: "UNAUTHORIZED",
+            },
+          });
+        }
+
+        try {
+          const decoded = (await fastify.jwt.verify(token)) as {
+            userId: string;
+            role: string;
+          };
+
+          // Adicionar informações do usuário ao request
+          (request as any).user = {
+            id: decoded.userId,
+            role: decoded.role,
+          };
+        } catch (error) {
+          return reply.status(401).send({
+            error: {
+              message: "Token inválido",
+              code: "INVALID_TOKEN",
+            },
+          });
+        }
+      },
       schema: {
         response: {
           200: Type.Object({
             data: Type.Object({
-              user: Type.Object({
-                id: Type.String(),
-                name: Type.String(),
-                email: Type.String(),
-                role: Type.String(),
-              }),
+              id: Type.String(),
+              name: Type.String(),
+              email: Type.String(),
+              role: Type.String(),
             }),
           }),
           401: Type.Object({
@@ -238,29 +267,18 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
     },
     async (request, reply) => {
       try {
-        // Verificar autenticação
-        const token = request.headers.authorization?.replace("Bearer ", "");
-        if (!token) {
-          return reply.status(401).send({
-            error: {
-              message: "Token de acesso requerido",
-              code: "UNAUTHORIZED",
-            },
-          });
-        }
-
-        const decoded = (await fastify.jwt.verify(token)) as {
-          userId: string;
-          role: string;
-        };
+        const userId = (request as any).user.id;
 
         const user = await prisma.user.findUnique({
-          where: { id: decoded.userId },
+          where: { id: userId },
           select: {
             id: true,
             name: true,
             email: true,
             role: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
           },
         });
 
@@ -275,20 +293,21 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
         return reply.send({
           data: {
-            user: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
-            },
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            isActive: user.isActive,
+            createdAt: user.createdAt.toISOString(),
+            updatedAt: user.updatedAt.toISOString(),
           },
         });
       } catch (error) {
         fastify.log.error(error);
-        return reply.status(401).send({
+        return reply.status(500).send({
           error: {
-            message: "Token inválido",
-            code: "INVALID_TOKEN",
+            message: "Erro interno do servidor",
+            code: "INTERNAL_ERROR",
           },
         });
       }

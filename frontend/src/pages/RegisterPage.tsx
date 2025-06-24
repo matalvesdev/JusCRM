@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import justicaImage from '@/assets/justica.jpg';
+import { useAuth } from '@/contexts/AuthContext';
 
 const registerSchema = z.object({
     name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -28,8 +28,17 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export const RegisterPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);    // const { isAuthenticated } = useAuth();
+    const { register: registerUser, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    // Redireciona usuários já autenticados
+    useEffect(() => {
+        if (isAuthenticated) {
+            console.log('[RegisterPage] Usuário já autenticado, redirecionando para /app');
+            navigate('/app', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const {
         register,
@@ -38,22 +47,19 @@ export const RegisterPage: React.FC = () => {
         formState: { errors },
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
-    });
-
-    const onSubmit = async (data: RegisterFormData) => {
+    }); const onSubmit = async (data: RegisterFormData) => {
         try {
             setIsLoading(true);
             setError(null);
             setSuccess(null);
 
-            // TODO: Implementar chamada para API de registro
-            console.log('Register data:', data);
+            console.log('[RegisterPage] Dados de registro:', data);            // Remover confirmPassword antes de enviar para a API
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { confirmPassword: _, ...registerData } = data;
 
-            // Simulação de sucesso por enquanto
-            setSuccess('Conta criada com sucesso! Redirecionando para login...');
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
+            await registerUser(registerData);
+            console.log('[RegisterPage] Registro bem-sucedido, redirecionando...');
+            navigate('/app');
 
         } catch (err) {
             setError('Erro ao criar conta. Tente novamente.');
@@ -192,8 +198,8 @@ export const RegisterPage: React.FC = () => {
             {/* Lado direito - Imagem */}
             <div className="hidden bg-muted lg:block">
                 <img
-                    src={justicaImage}
-                    alt="Estátua da Justiça"
+                    src="/src/assets/justica.jpg"
+                    alt="Balança da Justiça"
                     className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
                 />
             </div>

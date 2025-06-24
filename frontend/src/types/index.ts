@@ -143,7 +143,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   user: User;
-  token: string;
+  accessToken: string;
 }
 
 export interface ApiResponse<T> {
@@ -159,4 +159,12 @@ export interface PaginatedResponse<T> {
     total: number;
     totalPages: number;
   };
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  role?: "ADMIN" | "LAWYER" | "ASSISTANT";
+  phone?: string;
 }

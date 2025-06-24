@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import balancaImage from '@/assets/balanca.jpg';
 
 const loginSchema = z.object({
     email: z.string().email('Email inválido'),
@@ -19,8 +18,16 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export const LoginPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+
+    // Redireciona usuários já autenticados
+    useEffect(() => {
+        if (isAuthenticated) {
+            console.log('[LoginPage] Usuário já autenticado, redirecionando para /app');
+            navigate('/app', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const {
         register,
@@ -28,33 +35,25 @@ export const LoginPage: React.FC = () => {
         formState: { errors },
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
-    });
-
-    const onSubmit = async (data: LoginFormData) => {
+    }); const onSubmit = async (data: LoginFormData) => {
         try {
             setIsLoading(true);
             setError(null);
+            console.log('[LoginPage] Tentando fazer login:', data);
+
             await login(data);
+            console.log('[LoginPage] Login bem-sucedido, redirecionando...');
+            navigate('/app');
+
         } catch (err) {
+            console.error('[LoginPage] Erro no login:', err);
             setError('Email ou senha inválidos');
-            console.error('Login error:', err);
         } finally {
             setIsLoading(false);
         }
-    };
-
-    return (
+    }; return (
         <div className="grid min-h-screen lg:grid-cols-2">
-            {/* Lado esquerdo - Imagem */}
-            <div className="hidden bg-muted lg:block">
-                <img
-                    src={balancaImage}
-                    alt="Balança da Justiça"
-                    className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
-                />
-            </div>
-
-            {/* Lado direito - Formulário */}
+            {/* Lado esquerdo - Formulário */}
             <div className="flex items-center justify-center py-12">
                 <div className="mx-auto grid w-[350px] gap-6">
                     <div className="grid gap-2 text-center">
@@ -120,9 +119,17 @@ export const LoginPage: React.FC = () => {
                             onClick={() => navigate('/register')}
                         >
                             Registre-se
-                        </button>
-                    </div>
+                        </button>                    </div>
                 </div>
+            </div>
+
+            {/* Lado direito - Imagem */}
+            <div className="hidden bg-muted lg:block">
+                <img
+                    src="/src/assets/balanca.jpg"
+                    alt="Balança da Justiça"
+                    className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+                />
             </div>
         </div>
     );

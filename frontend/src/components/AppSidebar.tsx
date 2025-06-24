@@ -24,42 +24,42 @@ import { cn } from '@/lib/utils';
 const menuItems = [
     {
         title: 'Dashboard',
-        url: '/dashboard',
+        url: '/app/dashboard',
         icon: LayoutDashboard,
     },
     {
         title: 'Clientes',
-        url: '/clients',
+        url: '/app/clients',
         icon: Users,
     },
     {
         title: 'Casos',
-        url: '/cases',
+        url: '/app/cases',
         icon: Briefcase,
     },
     {
         title: 'Documentos',
-        url: '/documents',
+        url: '/app/documents',
         icon: FileText,
     },
     {
         title: 'Agenda',
-        url: '/appointments',
+        url: '/app/appointments',
         icon: Calendar,
     },
     {
         title: 'Pagamentos',
-        url: '/payments',
+        url: '/app/payments',
         icon: CreditCard,
     },
     {
         title: 'Atividades',
-        url: '/activities',
+        url: '/app/activities',
         icon: Activity,
     },
     {
         title: 'Configurações',
-        url: '/settings',
+        url: '/app/settings',
         icon: Settings,
     },
 ];
