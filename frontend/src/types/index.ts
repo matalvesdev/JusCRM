@@ -326,3 +326,32 @@ export interface UpcomingDeadline {
   clientName: string;
   daysUntil: number;
 }
+
+export interface SearchSuggestion {
+  id: string;
+  text: string;
+  type: "client" | "case" | "document" | "appointment";
+  subtitle?: string;
+  url: string;
+}
+
+export interface GlobalSearchResponse {
+  results: {
+    clients: ClientProfile[];
+    cases: Case[];
+    documents: Document[];
+    appointments: Appointment[];
+  };
+  meta: {
+    total: number;
+    query: string;
+    type: string;
+    executionTime: number;
+    page: number;
+    limit: number;
+  };
+}
+
+export interface SearchSuggestionsResponse {
+  suggestions: SearchSuggestion[];
+}

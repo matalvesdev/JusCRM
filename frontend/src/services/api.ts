@@ -807,7 +807,63 @@ class ApiService {
     console.log("[API] Deletando notificação:", id);
     return this.api.delete(`/notifications/${id}`).then(() => void 0);
   }
+
+  // === BUSCA GLOBAL ===
+
+  // Busca global unificada
+  async searchGlobal(
+    query: string,
+    type: "ALL" | "CLIENTS" | "CASES" | "DOCUMENTS" | "APPOINTMENTS" = "ALL",
+    limit: number = 10,
+    page: number = 1
+  ): Promise<import("@/types").GlobalSearchResponse> {
+    console.log("[API] Realizando busca global:", { query, type, limit, page });
+    const params = new URLSearchParams({
+      query,
+      type,
+      limit: limit.toString(),
+      page: page.toString(),
+    });
+    return this.get<import("@/types").GlobalSearchResponse>(
+      `/search?${params}`
+    );
+  }
+
+  // Obter sugestões de busca
+  async getSearchSuggestions(
+    query: string,
+    limit: number = 5
+  ): Promise<import("@/types").SearchSuggestionsResponse> {
+    console.log("[API] Buscando sugestões:", { query, limit });
+    const params = new URLSearchParams({
+      query,
+      limit: limit.toString(),
+    });
+    return this.get<import("@/types").SearchSuggestionsResponse>(
+      `/search/suggestions?${params}`
+    );
+  }
 }
 
 export const apiService = new ApiService();
+
+// Exports individuais para compatibilidade
+export const {
+  login,
+  register,
+  getDashboardStats,
+  getClients,
+  getCases,
+  getDocuments,
+  getAppointments,
+  searchGlobal,
+  getSearchSuggestions,
+  getNotifications,
+  getUnreadNotificationsCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  createNotification,
+  deleteNotification,
+} = apiService;
+
 export default apiService;
