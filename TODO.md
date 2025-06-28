@@ -144,24 +144,30 @@
   - [ ] Envio automático de lembretes
   - [ ] Sistema de triggers automáticos
 
-### 5. Busca Avançada Global
+### 5. Busca Avançada Global ⏳
 
 **Objetivo:** Facilitar encontrar informações em todo o sistema
 **Estimativa:** 2 semanas
+**Status:** EM ANDAMENTO
 
-- [ ] **Backend Search**
+- [x] **Backend Search**
 
-  - [ ] Endpoint de busca unificada
-  - [ ] Indexação de conteúdo
-  - [ ] Filtros avançados
-  - [ ] Busca em documentos (texto)
+  - [x] Endpoint de busca unificada (/api/search)
+  - [x] Endpoint de sugestões (/api/search/suggestions)
+  - [x] Busca em clientes, casos, documentos, compromissos
+  - [x] Paginação e filtros por tipo
+  - [x] Validação de schemas Fastify
+  - [ ] Indexação de conteúdo avançada
+  - [ ] Busca em texto de documentos (PDFs)
+  - [ ] Filtros avançados (data, status, etc.)
 
 - [ ] **Frontend Search**
-  - [ ] Barra de busca global
-  - [ ] Autocomplete/suggestions
+  - [ ] Barra de busca global no header
+  - [ ] Autocomplete/suggestions em tempo real
   - [ ] Filtros por tipo de conteúdo
+  - [ ] Página de resultados com paginação
   - [ ] Histórico de buscas
-  - [ ] Resultados paginados
+  - [ ] Destaque dos termos buscados
 
 ---
 
