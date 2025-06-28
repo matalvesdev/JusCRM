@@ -4,7 +4,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { searchGlobal, getSearchSuggestions } from '../services/api';
-import { GlobalSearchResponse, SearchSuggestion, ClientProfile, Case, Document, Appointment } from '../types';
+import type { GlobalSearchResponse, SearchSuggestion, ClientProfile, Case, Document, Appointment } from '../types';
 
 interface GlobalSearchProps {
     className?: string;

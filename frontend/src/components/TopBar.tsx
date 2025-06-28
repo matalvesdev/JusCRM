@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationBell } from '@/components/NotificationBell';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 export const TopBar: React.FC = () => {
     const { user, logout } = useAuth();
@@ -31,6 +32,11 @@ export const TopBar: React.FC = () => {
                     <h1 className="text-xl font-semibold text-gray-900">
                         Bem-vindo, {user?.name}
                     </h1>
+                </div>
+
+                {/* Barra de busca global - centralizada */}
+                <div className="flex-1 max-w-2xl mx-8">
+                    <GlobalSearch />
                 </div>
 
                 <div className="flex items-center space-x-4">
