@@ -7,6 +7,8 @@ import jwt from "@fastify/jwt";
 import multipart from "@fastify/multipart";
 import swagger from "@fastify/swagger";
 import swaggerUi from "@fastify/swagger-ui";
+import fastifyStatic from "@fastify/static";
+import * as path from "path";
 
 import { env } from "./config/env";
 import { errorHandler } from "./plugins/error-handler";
@@ -15,13 +17,17 @@ import { authPlugin } from "./plugins/auth";
 // Routes
 import { authRoutes } from "./routes/auth";
 import { userRoutes } from "./routes/users";
-import { clientRoutes } from "./routes/clients";
-import { caseRoutes } from "./routes/cases";
-import { documentRoutes } from "./routes/documents";
+import { clientsRoutes } from "./routes/clients";
+import { casesRoutes } from "./routes/cases";
+import { documentsRoutes } from "./routes/documents";
 import { petitionRoutes } from "./routes/petitions";
-import { appointmentRoutes } from "./routes/appointments";
+import { appointmentsRoutes } from "./routes/appointments";
 import { paymentRoutes } from "./routes/payments";
 import { activityRoutes } from "./routes/activities";
+import { dashboardRoutes } from "./routes/dashboard";
+import { profileRoutes } from "./routes/profile";
+import { notificationsRoutes } from "./routes/notifications";
+import { searchRoutes } from "./routes/search";
 
 const app = Fastify({
   logger:
@@ -74,13 +80,17 @@ async function bootstrap() {
       sign: {
         expiresIn: "15m", // Token de acesso curto
       },
-    });
-
-    // Multipart para upload de arquivos
+    }); // Multipart para upload de arquivos
     await app.register(multipart, {
       limits: {
         fileSize: 10 * 1024 * 1024, // 10MB
       },
+    });
+
+    // Servir arquivos estáticos
+    await app.register(fastifyStatic, {
+      root: path.join(process.cwd(), "uploads"),
+      prefix: "/uploads/",
     });
 
     // Swagger Documentation
@@ -117,9 +127,7 @@ async function bootstrap() {
           deepLinking: false,
         },
       });
-    }
-
-    // Plugins customizados
+    } // Plugins customizados
     await app.register(errorHandler);
     await app.register(authPlugin);
 
@@ -131,13 +139,17 @@ async function bootstrap() {
     // Rotas da API
     await app.register(authRoutes, { prefix: "/api/auth" });
     await app.register(userRoutes, { prefix: "/api/users" });
-    await app.register(clientRoutes, { prefix: "/api/clients" });
-    await app.register(caseRoutes, { prefix: "/api/cases" });
-    await app.register(documentRoutes, { prefix: "/api/documents" });
+    await app.register(clientsRoutes, { prefix: "/api/clients" });
+    await app.register(casesRoutes, { prefix: "/api/cases" });
+    await app.register(documentsRoutes, { prefix: "/api/documents" });
     await app.register(petitionRoutes, { prefix: "/api/petitions" });
-    await app.register(appointmentRoutes, { prefix: "/api/appointments" });
+    await app.register(appointmentsRoutes, { prefix: "/api/appointments" });
     await app.register(paymentRoutes, { prefix: "/api/payments" });
     await app.register(activityRoutes, { prefix: "/api/activities" });
+    await app.register(dashboardRoutes, { prefix: "/api/dashboard" });
+    await app.register(profileRoutes, { prefix: "/api" });
+    await app.register(notificationsRoutes, { prefix: "/api/notifications" });
+    await app.register(searchRoutes, { prefix: "/api/search" });
 
     // Start server
     await app.listen({

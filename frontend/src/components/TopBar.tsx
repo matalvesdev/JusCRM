@@ -8,8 +8,9 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Bell, User, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { NotificationBell } from '@/components/NotificationBell';
 
 export const TopBar: React.FC = () => {
     const { user, logout } = useAuth();
@@ -33,9 +34,7 @@ export const TopBar: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                    <Button variant="ghost" size="icon">
-                        <Bell className="h-4 w-4" />
-                    </Button>
+                    <NotificationBell />
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>

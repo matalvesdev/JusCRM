@@ -1,302 +1,498 @@
 # JusCRM - TODO List
 
-## 🎯 PRIORIDADE ALTA (Funcionalidades Core)
+## ✅ CONCLUÍDO - Sistema Base Funcionando
 
-### Backend API
+### Core Features Implementadas
 
-- [ ] **Implementar CRUD completo para Clientes**
+- [x] **Autenticação completa** (JWT, login/logout, rotas protegidas)
+- [x] **CRUD completo de Clientes** (filtros, paginação, validação)
+- [x] **CRUD completo de Casos** (status, tipos, timeline, integração)
+- [x] **Sistema de Documentos** (upload, download, organização, controle acesso)
+- [x] **Sistema de Agenda** (compromissos, integração com casos, filtros)
+- [x] **Dashboard** (estatísticas, métricas, gráficos)
+- [x] **Interface responsiva** (shadcn/ui, componentes modernos)
+- [x] **Integração Frontend-Backend** (todas as APIs funcionando)
+- [x] **Banco de dados** (configurado com dados de teste)
 
-  - [ ] Endpoint para busca/filtro de clientes
-  - [ ] Upload de documentos dos clientes
-  - [ ] Histórico de alterações
+### Ambiente de Desenvolvimento
 
-- [ ] **Implementar CRUD completo para Casos**
+- [x] Backend rodando em `http://localhost:3333`
+- [x] Frontend rodando em `http://localhost:5173`
+- [x] Documentação API em `/docs`
+- [x] Credenciais de teste configuradas
 
-  - [ ] Endpoint para busca/filtro de casos
-  - [ ] Associação caso-cliente
-  - [ ] Status workflow dos casos
-  - [ ] Anexos de documentos aos casos
+---
 
-- [ ] **Sistema de Documentos**
+## 🎯 PRÓXIMAS FUNCIONALIDADES - PRIORIDADE ALTA
 
-  - [ ] Upload de arquivos (PDF, DOC, imagens)
-  - [ ] Organização por pastas/categorias
-  - [ ] Controle de acesso por usuário/papel
-  - [ ] Versionamento de documentos
+### 1. Landing Page Institucional ✅
 
-- [ ] **Sistema de Agenda/Compromissos**
-  - [ ] CRUD de compromissos
-  - [ ] Notificações de prazos
-  - [ ] Integração com casos
-  - [ ] Lembretes automáticos
+**Objetivo:** Criar página inicial para visitantes e potenciais clientes
+**Estimativa:** 1-2 semanas
+**Status:** CONCLUÍDO
 
-### Frontend - Páginas Principais
+- [x] **Design da Landing Page**
 
-- [ ] **Dashboard Completo**
+  - [x] Hero section com call-to-action
+  - [x] Seção "Sobre o JusCRM"
+  - [x] Recursos/funcionalidades principais
+  - [x] Depoimentos/testimonials
+  - [x] Seção de preços/planos
+  - [x] Formulário de contato
+  - [x] Footer com links importantes
 
-  - [ ] Gráficos de casos por status
-  - [ ] Casos próximos do vencimento
-  - [ ] Métricas de produtividade
-  - [ ] Agenda do dia/semana
+- [x] **Conteúdo e Copy**
 
-- [ ] **Página de Clientes**
+  - [x] Textos persuasivos
+  - [x] Imagens/ilustrações
+  - [x] Ícones para features
+  - [x] Integração com rotas do app
 
-  - [ ] Lista com filtros avançados
-  - [ ] Formulário de cadastro/edição
-  - [ ] Visualização detalhada do cliente
-  - [ ] Histórico de casos do cliente
+- [x] **Integração**
+  - [x] Rota principal (/) direcionando para Landing Page
+  - [x] Links para login e registro funcionando
+  - [x] Responsividade implementada
 
-- [ ] **Página de Casos**
+### 2. Sistema de Perfil do Usuário ✅
 
-  - [ ] Lista com filtros por status, cliente, data
-  - [ ] Formulário de criação/edição
-  - [ ] Timeline do caso
-  - [ ] Anexos e documentos
+**Objetivo:** Permitir que usuários gerenciem suas informações
+**Estimativa:** 1 semana
+**Status:** CONCLUÍDO
 
-- [ ] **Página de Documentos**
+- [x] **Página de Perfil**
 
-  - [ ] Browser de arquivos
-  - [ ] Upload com drag & drop
-  - [ ] Preview de documentos
-  - [ ] Organização por categorias
+  - [x] Visualização de dados pessoais
+  - [x] Edição de informações (nome, telefone, endereço, biografia)
+  - [x] Avatar com inicial do nome
+  - [x] Informações do sistema (data de criação, último acesso)
+  - [x] Histórico de atividades (mockado)
+  - [x] Interface responsiva e moderna
 
-- [ ] **Página de Agenda**
-  - [ ] Calendário visual
-  - [ ] Criação de compromissos
-  - [ ] Integração com casos
-  - [ ] Notificações
+- [x] **Backend API**
 
-## 🚀 PRIORIDADE MÉDIA (UX/UI e Melhorias)
+  - [x] Endpoint GET /api/profile - buscar dados do perfil
+  - [x] Endpoint PUT /api/profile - atualizar dados do perfil
+  - [x] Endpoint POST /api/profile/change-password - alterar senha
+  - [x] Validações de entrada e segurança
+  - [x] Migração do banco com novos campos (phone, address, bio, lastLogin)
 
-### Interface e Experiência
+- [x] **Alteração de Senha**
 
-- [ ] **Landing Page Institucional**
+  - [x] Dialog modal para alteração de senha
+  - [x] Validação de senha atual
+  - [x] Validação de complexidade da nova senha
+  - [x] Confirmação de senha
+  - [x] Hash seguro da senha no backend
 
-  - [ ] Hero section com CTAs
-  - [ ] Seção de recursos/features
-  - [ ] Depoimentos de clientes
-  - [ ] Planos e preços
-  - [ ] Footer completo
+- [x] **Integração Frontend-Backend**
+  - [x] API calls funcionais
+  - [x] Tratamento de erros
+  - [x] Estados de loading
+  - [x] Navegação no sidebar
 
-- [ ] **Melhorias na Autenticação**
+### 3. Melhorias na Autenticação ⏳
 
-  - [ ] Recuperação de senha
-  - [ ] Verificação de email
-  - [ ] Login social (Google, etc.)
-  - [ ] Two-factor authentication
+**Objetivo:** Tornar o sistema mais seguro e user-friendly
+**Estimativa:** 1-2 semanas
+**Status:** EM ANDAMENTO
 
-- [ ] **Sistema de Perfil do Usuário**
+- [x] **Recuperação de Senha**
 
-  - [ ] Edição de dados pessoais
-  - [ ] Upload de foto de perfil
-  - [ ] Preferências do sistema
-  - [ ] Histórico de atividades
+  - [x] Endpoint backend para reset
+  - [x] Envio de email com token (logs em desenvolvimento)
+  - [x] Página de redefinição
+  - [x] Validação de token
+  - [x] Integração frontend-backend
+  - [x] Link na página de login
 
-- [ ] **Notificações em Tempo Real**
-  - [ ] WebSockets para notificações
-  - [ ] Centro de notificações
-  - [ ] Email notifications
-  - [ ] Push notifications (PWA)
+- [x] **Verificação de Email**
 
-### Funcionalidades Avançadas
+  - [x] Email de confirmação no registro (backend)
+  - [x] Página de verificação (frontend)
+  - [x] Reenvio de email (frontend)
+  - [x] Integração completa
 
-- [ ] **Sistema de Relatórios**
+- [ ] **Melhorias UX**
+  - [ ] Remember me checkbox
+  - [ ] Logout automático por inatividade
+  - [ ] Mensagens de erro melhoradas
 
+### 4. Sistema de Notificações ✅
+
+**Objetivo:** Manter usuários informados sobre prazos e atividades
+**Estimativa:** 2-3 semanas
+**Status:** CONCLUÍDO (Básico)
+
+- [x] **Backend de Notificações**
+
+  - [x] Modelo de notificações no banco (tipos, prioridades, relações)
+  - [x] API para CRUD de notificações
+  - [x] Endpoints de listagem, contagem e marcação como lida
+  - [x] Autenticação e autorização
+
+- [x] **Frontend de Notificações**
+
+  - [x] Centro de notificações (dropdown)
+  - [x] Badge com contador de não lidas
+  - [x] Marca como lida/não lida
+  - [x] Interface responsiva e moderna
+  - [x] Diferentes tipos e prioridades visuais
+
+- [ ] **Email Notifications (Próxima fase)**
+  - [ ] Configuração SMTP
+  - [ ] Templates de email
+  - [ ] Envio automático de lembretes
+  - [ ] Sistema de triggers automáticos
+
+### 5. Busca Avançada Global
+
+**Objetivo:** Facilitar encontrar informações em todo o sistema
+**Estimativa:** 2 semanas
+
+- [ ] **Backend Search**
+
+  - [ ] Endpoint de busca unificada
+  - [ ] Indexação de conteúdo
+  - [ ] Filtros avançados
+  - [ ] Busca em documentos (texto)
+
+- [ ] **Frontend Search**
+  - [ ] Barra de busca global
+  - [ ] Autocomplete/suggestions
+  - [ ] Filtros por tipo de conteúdo
+  - [ ] Histórico de buscas
+  - [ ] Resultados paginados
+
+---
+
+## 🚀 FUNCIONALIDADES INTERMEDIÁRIAS
+
+### 6. Sistema de Relatórios
+
+**Objetivo:** Gerar relatórios para análise de dados
+**Estimativa:** 2-3 semanas
+
+- [ ] **Relatórios Backend**
+
+  - [ ] API para geração de relatórios
   - [ ] Relatório de casos por período
   - [ ] Relatório de produtividade
-  - [ ] Relatório financeiro
+  - [ ] Relatório de clientes
   - [ ] Export para PDF/Excel
 
-- [ ] **Busca Avançada Global**
+- [ ] **Interface de Relatórios**
+  - [ ] Página de relatórios
+  - [ ] Seleção de período/filtros
+  - [ ] Preview antes do download
+  - [ ] Histórico de relatórios gerados
 
-  - [ ] Busca unificada (clientes, casos, documentos)
-  - [ ] Filtros inteligentes
-  - [ ] Busca por texto nos documentos
-  - [ ] Histórico de buscas
+### 7. Sistema de Templates
 
-- [ ] **Sistema de Templates**
-  - [ ] Templates de documentos legais
-  - [ ] Templates de emails
-  - [ ] Templates de contratos
-  - [ ] Editor visual de templates
+**Objetivo:** Padronizar documentos e comunicações
+**Estimativa:** 2-3 semanas
 
-## 📱 PRIORIDADE BAIXA (Recursos Extras)
+- [ ] **Templates Backend**
 
-### Mobile e Responsividade
+  - [ ] Modelo de templates no banco
+  - [ ] API CRUD para templates
+  - [ ] Sistema de variáveis
+  - [ ] Versionamento de templates
 
-- [ ] **PWA (Progressive Web App)**
+- [ ] **Editor de Templates**
+  - [ ] Editor WYSIWYG
+  - [ ] Variáveis dinâmicas
+  - [ ] Preview em tempo real
+  - [ ] Templates pré-definidos
 
-  - [ ] Service worker para offline
+### 8. Audit Trail e Logs
+
+**Objetivo:** Rastrear todas as ações do sistema
+**Estimativa:** 1-2 semanas
+
+- [ ] **Sistema de Auditoria**
+  - [ ] Log de todas as ações
+  - [ ] Rastreamento de mudanças
+  - [ ] Histórico por usuário
+  - [ ] Exportação de logs
+
+### 9. Melhorias no Dashboard
+
+**Objetivo:** Tornar o dashboard mais informativo
+**Estimativa:** 1 semana
+
+- [ ] **Novos Widgets**
+
+  - [ ] Gráfico de casos por tempo
+  - [ ] Top clientes por casos
+  - [ ] Prazos próximos do vencimento
+  - [ ] Atividades recentes
+
+- [ ] **Customização**
+  - [ ] Widgets configuráveis
+  - [ ] Layout personalizável
+  - [ ] Filtros por período
+
+---
+
+## 📱 MELHORIAS UX/UI
+
+### 10. PWA (Progressive Web App)
+
+**Objetivo:** Funcionar como app nativo
+**Estimativa:** 1-2 semanas
+
+- [ ] **Configuração PWA**
+  - [ ] Service worker
   - [ ] App manifest
-  - [ ] Instalação no device
-  - [ ] Cache strategy
+  - [ ] Ícones para instalação
+  - [ ] Funcionalidade offline básica
 
-- [ ] **Mobile-First Improvements**
-  - [ ] Layout otimizado para mobile
-  - [ ] Gestos touch
+### 11. Melhorias Mobile
+
+**Objetivo:** Otimizar para dispositivos móveis
+**Estimativa:** 1-2 semanas
+
+- [ ] **Layout Mobile**
   - [ ] Menu hambúrguer aprimorado
-  - [ ] Navegação por swipe
+  - [ ] Navegação touch-friendly
+  - [ ] Tabelas responsivas
+  - [ ] Formulários otimizados
 
-### Integrações e APIs
+### 12. Acessibilidade
 
-- [ ] **Integração com Tribunal**
+**Objetivo:** Tornar o sistema acessível a todos
+**Estimativa:** 1 semana
 
-  - [ ] Consulta de processos (TRT, TST)
-  - [ ] Acompanhamento automático
-  - [ ] Notificações de movimentação
+- [ ] **WCAG Compliance**
+  - [ ] Navegação por teclado
+  - [ ] Screen reader support
+  - [ ] Contraste de cores
+  - [ ] Alt text em imagens
 
-- [ ] **Integração Financeira**
-
-  - [ ] Sistema de cobrança
-  - [ ] Integração com bancos (PIX, boleto)
-  - [ ] Controle de honorários
-  - [ ] Fluxo de caixa
-
-- [ ] **Integração com Email**
-  - [ ] IMAP/SMTP configuration
-  - [ ] Templates de email
-  - [ ] Campanhas de email
-  - [ ] Tracking de emails
-
-### Administração e DevOps
-
-- [ ] **Painel Administrativo**
-
-  - [ ] Gestão de usuários
-  - [ ] Logs do sistema
-  - [ ] Métricas de uso
-  - [ ] Backup e restore
-
-- [ ] **Multi-tenancy**
-  - [ ] Separação por escritório
-  - [ ] Planos de assinatura
-  - [ ] Billing automático
-  - [ ] Customização por tenant
+---
 
 ## 🔧 MELHORIAS TÉCNICAS
 
-### Backend
+### 13. Testes Automatizados
 
-- [ ] **Testes Automatizados**
+**Objetivo:** Garantir qualidade e confiabilidade
+**Estimativa:** 2-3 semanas
 
-  - [ ] Unit tests
+- [ ] **Backend Tests**
+
+  - [ ] Unit tests (Jest)
   - [ ] Integration tests
-  - [ ] E2E tests
+  - [ ] API endpoint tests
+  - [ ] Database tests
+
+- [ ] **Frontend Tests**
+  - [ ] Component tests (React Testing Library)
+  - [ ] E2E tests (Playwright)
+  - [ ] Visual regression tests
   - [ ] Coverage reports
 
-- [ ] **Performance**
+### 14. Performance e Otimização
+
+**Objetivo:** Melhorar velocidade e eficiência
+**Estimativa:** 1-2 semanas
+
+- [ ] **Backend Performance**
 
   - [ ] Query optimization
   - [ ] Database indexing
   - [ ] Caching (Redis)
   - [ ] API rate limiting
 
-- [ ] **Segurança**
-  - [ ] Audit logs
-  - [ ] RBAC avançado
-  - [ ] Encryption at rest
-  - [ ] Security headers
-
-### Frontend
-
-- [ ] **Otimizações**
-
+- [ ] **Frontend Performance**
   - [ ] Code splitting
   - [ ] Lazy loading
   - [ ] Image optimization
   - [ ] Bundle analysis
 
-- [ ] **Acessibilidade**
+### 15. Segurança Avançada
 
-  - [ ] WCAG compliance
-  - [ ] Screen reader support
-  - [ ] Keyboard navigation
-  - [ ] Color contrast
+**Objetivo:** Aumentar segurança do sistema
+**Estimativa:** 1-2 semanas
 
-- [ ] **Testes Frontend**
-  - [ ] Component tests (Jest/RTL)
-  - [ ] E2E tests (Playwright)
-  - [ ] Visual regression tests
-  - [ ] Performance tests
+- [ ] **Segurança Backend**
 
-### DevOps e Deploy
+  - [ ] RBAC (Role-Based Access Control)
+  - [ ] Encryption at rest
+  - [ ] Security headers
+  - [ ] Input validation
 
-- [ ] **CI/CD Pipeline**
+- [ ] **Auditoria de Segurança**
+  - [ ] Vulnerability scanning
+  - [ ] Penetration testing
+  - [ ] Security best practices
 
-  - [ ] GitHub Actions
-  - [ ] Automated testing
-  - [ ] Automated deployment
-  - [ ] Environment management
+---
 
-- [ ] **Infraestrutura**
+## 🌐 INTEGRAÇÕES AVANÇADAS
 
-  - [ ] Docker containerization
-  - [ ] Cloud deployment (AWS/Vercel)
-  - [ ] Database migrations
-  - [ ] Monitoring e logs
+### 16. Integração com Tribunais
 
-- [ ] **Backup e Recovery**
-  - [ ] Automated backups
-  - [ ] Disaster recovery plan
-  - [ ] Data migration tools
-  - [ ] Environment sync
+**Objetivo:** Automatizar consulta de processos
+**Estimativa:** 3-4 semanas
+
+- [ ] **APIs de Tribunais**
+  - [ ] Integração TRT/TST
+  - [ ] Consulta de processos
+  - [ ] Acompanhamento automático
+  - [ ] Notificações de movimentação
+
+### 17. Sistema Financeiro
+
+**Objetivo:** Controle de honorários e pagamentos
+**Estimativa:** 3-4 semanas
+
+- [ ] **Gestão Financeira**
+  - [ ] Controle de honorários
+  - [ ] Geração de boletos/PIX
+  - [ ] Fluxo de caixa
+  - [ ] Relatórios financeiros
+
+### 18. Integração Email
+
+**Objetivo:** Automatizar comunicações
+**Estimativa:** 2 semanas
+
+- [ ] **Email Integration**
+  - [ ] IMAP/SMTP configuration
+  - [ ] Templates de email
+  - [ ] Campanhas automáticas
+  - [ ] Tracking de emails
+
+---
 
 ## 📊 ANALYTICS E MONITORING
 
-- [ ] **User Analytics**
+### 19. Analytics Avançado
 
+**Objetivo:** Entender uso do sistema
+**Estimativa:** 1-2 semanas
+
+- [ ] **User Analytics**
   - [ ] Google Analytics/Mixpanel
   - [ ] User behavior tracking
   - [ ] Feature usage metrics
-  - [ ] Performance monitoring
+  - [ ] Conversion funnels
 
-- [ ] **Error Tracking**
+### 20. Error Tracking
 
+**Objetivo:** Monitorar e corrigir erros
+**Estimativa:** 1 semana
+
+- [ ] **Error Monitoring**
   - [ ] Sentry integration
   - [ ] Error logging
   - [ ] Performance monitoring
   - [ ] Uptime monitoring
 
-- [ ] **Business Intelligence**
-  - [ ] KPI dashboards
-  - [ ] Revenue tracking
-  - [ ] User engagement metrics
-  - [ ] Conversion funnels
+---
+
+## 🏢 RECURSOS EMPRESARIAIS
+
+### 21. Multi-tenancy
+
+**Objetivo:** Suportar múltiplos escritórios
+**Estimativa:** 4-6 semanas
+
+- [ ] **Arquitetura Multi-tenant**
+  - [ ] Separação por escritório
+  - [ ] Banco de dados isolado
+  - [ ] Customização por tenant
+  - [ ] Billing separado
+
+### 22. Sistema de Planos
+
+**Objetivo:** Monetização do sistema
+**Estimativa:** 2-3 semanas
+
+- [ ] **Subscription System**
+  - [ ] Planos de assinatura
+  - [ ] Billing automático
+  - [ ] Limitações por plano
+  - [ ] Upgrade/downgrade
 
 ---
 
-## 🏆 MARCOS (Milestones)
+## 📱 DEVOPS E DEPLOY
 
-### MVP (Minimum Viable Product) - ✅ COMPLETO
+### 23. CI/CD Pipeline
 
-- [x] Autenticação funcional
-- [x] CRUD básico de usuários
-- [x] Dashboard inicial
-- [x] Estrutura de rotas protegidas
+**Objetivo:** Automatizar deploy e testes
+**Estimativa:** 1-2 semanas
 
-### V1.0 - Core Features
+- [ ] **Automation**
+  - [ ] GitHub Actions
+  - [ ] Automated testing
+  - [ ] Automated deployment
+  - [ ] Environment management
 
-- [ ] CRUD completo de Clientes
-- [ ] CRUD completo de Casos
-- [ ] Sistema de Documentos básico
-- [ ] Agenda/Compromissos
-- [ ] Landing page institucional
+### 24. Containerização
 
-### V1.1 - Enhanced UX
+**Objetivo:** Facilitar deploy e escalabilidade
+**Estimativa:** 1 semana
 
-- [ ] Notificações em tempo real
-- [ ] Busca avançada
-- [ ] Relatórios básicos
-- [ ] Mobile responsivo
+- [ ] **Docker**
+  - [ ] Dockerfile otimizado
+  - [ ] Docker Compose
+  - [ ] Multi-stage builds
+  - [ ] Health checks
 
-### V2.0 - Advanced Features
+### 25. Cloud Deployment
 
-- [ ] Integrações externas
-- [ ] Multi-tenancy
-- [ ] Analytics avançado
-- [ ] PWA completo
+**Objetivo:** Deploy em produção
+**Estimativa:** 1-2 semanas
+
+- [ ] **Production Setup**
+  - [ ] Cloud deployment (AWS/Vercel)
+  - [ ] Domain configuration
+  - [ ] SSL certificates
+  - [ ] Database backup
+  - [ ] Monitoring setup
 
 ---
 
-**Total de TODOs:** ~80+ itens
-**Estimativa de desenvolvimento:** 6-12 meses (dependendo da equipe e prioridades)
+## 📈 ROADMAP SUGERIDO
+
+### **Fase 1 (Próximas 4-6 semanas)** - UX Essencial
+
+1. Landing Page Institucional
+2. Sistema de Perfil do Usuário
+3. Melhorias na Autenticação
+4. Busca Avançada Global
+
+### **Fase 2 (6-10 semanas)** - Funcionalidades Avançadas
+
+5. Sistema de Notificações
+6. Sistema de Relatórios
+7. Audit Trail e Logs
+8. Melhorias no Dashboard
+
+### **Fase 3 (10-14 semanas)** - Qualidade e Performance
+
+9. PWA e Melhorias Mobile
+10. Testes Automatizados
+11. Performance e Otimização
+12. Acessibilidade
+
+### **Fase 4 (14-20 semanas)** - Integrações e Empresa
+
+13. Sistema de Templates
+14. Integração Email
+15. Analytics e Monitoring
+16. Sistema Financeiro
+
+### **Fase 5 (20+ semanas)** - Enterprise
+
+17. Multi-tenancy
+18. Integração com Tribunais
+19. Sistema de Planos
+20. Deploy em Produção
+
+---
+
+**Total Estimado:** 20-25 semanas (5-6 meses) para implementação completa
+**Próximo Foco:** Itens 1-4 da Fase 1 (Landing Page + UX Essencial)

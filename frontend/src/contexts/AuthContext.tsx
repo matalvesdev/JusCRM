@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User, LoginRequest, RegisterRequest } from '@/types';
 import { apiService } from '@/services/api';
 
@@ -29,38 +29,38 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(false); // Começar com false para não bloquear
+    const [isLoading, setIsLoading] = useState(true); // Volta para true para verificação inicial
 
     const isAuthenticated = !!user;
 
-    // Comentado temporariamente para testar
-    // useEffect(() => {
-    //     const checkAuth = async () => {
-    //         console.log('[AuthContext] Iniciando verificação de autenticação...');
-    //         try {
-    //             const token = localStorage.getItem('auth_token');
-    //             console.log(`[AuthContext] Token encontrado: ${token ? 'Sim' : 'Não'}`);
+    // Verifica token salvo ao carregar a aplicação
+    useEffect(() => {
+        const checkAuth = async () => {
+            console.log('[AuthContext] Iniciando verificação de autenticação...');
+            try {
+                const token = localStorage.getItem('auth_token');
+                console.log(`[AuthContext] Token encontrado: ${token ? 'Sim' : 'Não'}`);
 
-    //             if (token) {
-    //                 console.log('[AuthContext] Verificando token com a API...');
-    //                 const userData = await apiService.me();
-    //                 console.log('[AuthContext] Token válido. Usuário recebido:', userData);
-    //                 setUser(userData);
-    //             } else {
-    //                 setUser(null);
-    //             }
-    //         } catch (error) {
-    //             console.error('[AuthContext] Erro ao verificar token (provavelmente inválido ou expirado):', error);
-    //             localStorage.removeItem('auth_token');
-    //             setUser(null);
-    //         } finally {
-    //             console.log('[AuthContext] Verificação de autenticação finalizada.');
-    //             setIsLoading(false);
-    //         }
-    //     };
+                if (token) {
+                    console.log('[AuthContext] Verificando token com a API...');
+                    const userData = await apiService.me();
+                    console.log('[AuthContext] Token válido. Usuário recebido:', userData);
+                    setUser(userData);
+                } else {
+                    setUser(null);
+                }
+            } catch (error) {
+                console.error('[AuthContext] Erro ao verificar token (provavelmente inválido ou expirado):', error);
+                localStorage.removeItem('auth_token');
+                setUser(null);
+            } finally {
+                console.log('[AuthContext] Verificação de autenticação finalizada.');
+                setIsLoading(false);
+            }
+        };
 
-    //     checkAuth();
-    // }, []);
+        checkAuth();
+    }, []);
 
     const login = async (credentials: LoginRequest): Promise<void> => {
         console.log('[AuthContext] Tentando fazer login...', credentials);

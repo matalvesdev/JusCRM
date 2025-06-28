@@ -36,22 +36,35 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Campos de perfil básico
+  phone     String?
+  address   String?
+  bio       String?
+  lastLogin DateTime?
+
   // Autenticação
-  password String?
-  provider AuthProvider @default(EMAIL)
+  password   String?
+  provider   AuthProvider @default(EMAIL)
   providerId String?
 
+  // Reset de senha
+  resetToken             String?
+  resetTokenExpiry       DateTime?
+  emailVerified          Boolean   @default(false)
+  emailVerificationToken String?
+
   // Relacionamentos
-  profile       LawyerProfile?
-  clientProfile ClientProfile?
-  refreshTokens RefreshToken[]
-  createdCases  Case[]         @relation("LawyerCases")
-  assignedCases Case[]         @relation("AssistantCases")
-  appointments  Appointment[]
-  documents     Document[]
-  activities    Activity[]
-  sentMessages  Message[]      @relation("SentMessages")
-  receivedMessages Message[]   @relation("ReceivedMessages")
+  profile          LawyerProfile?
+  clientProfile    ClientProfile?
+  refreshTokens    RefreshToken[]
+  createdCases     Case[]         @relation("LawyerCases")
+  assignedCases    Case[]         @relation("AssistantCases")
+  appointments     Appointment[]
+  documents        Document[]
+  activities       Activity[]
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  notifications    Notification[]
 
   @@map("users")
 }
@@ -69,20 +82,20 @@ model RefreshToken {
 }
 
 model LawyerProfile {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  oabNumber    String   @unique
-  oabState     String
-  specialties  String[] // Direito Trabalhista, Previdenciário, etc.
-  biography    String?
-  experience   Int?     // Anos de experiência
-  phone        String?
-  address      String?
-  city         String?
-  state        String?
-  zipCode      String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  oabNumber   String   @unique
+  oabState    String
+  specialties String[] // Direito Trabalhista, Previdenciário, etc.
+  biography   String?
+  experience  Int? // Anos de experiência
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -99,28 +112,28 @@ enum ClientType {
 }
 
 model ClientProfile {
-  id        String     @id @default(cuid())
-  userId    String     @unique
-  type      ClientType @default(INDIVIDUAL)
-  
+  id     String     @id @default(cuid())
+  userId String     @unique
+  type   ClientType @default(INDIVIDUAL)
+
   // Dados pessoais
-  cpf       String?    @unique
+  cpf       String?   @unique
   rg        String?
-  cnpj      String?    @unique
+  cnpj      String?   @unique
   birthDate DateTime?
   phone     String?
   address   String?
   city      String?
   state     String?
   zipCode   String?
-  
+
   // Dados profissionais
-  company     String?
-  position    String?
-  salary      Decimal?
-  workStart   DateTime?
-  workEnd     DateTime?
-  
+  company   String?
+  position  String?
+  salary    Decimal?
+  workStart DateTime?
+  workEnd   DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -163,29 +176,30 @@ model Case {
   description String?
   type        CaseType
   status      CaseStatus @default(DRAFT)
-  value       Decimal?   // Valor da causa
-  
+  value       Decimal? // Valor da causa
+
   // Relacionamentos
   clientId    String
   lawyerId    String
   assistantId String?
-  
+
   // Datas importantes
-  startDate   DateTime   @default(now())
-  endDate     DateTime?
-  
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  client      ClientProfile @relation(fields: [clientId], references: [id])
-  lawyer      User          @relation("LawyerCases", fields: [lawyerId], references: [id])
-  assistant   User?         @relation("AssistantCases", fields: [assistantId], references: [id])
-  
-  documents   Document[]
-  appointments Appointment[]
-  activities  Activity[]
-  petitions   Petition[]
-  payments    Payment[]
+  client    ClientProfile @relation(fields: [clientId], references: [id])
+  lawyer    User          @relation("LawyerCases", fields: [lawyerId], references: [id])
+  assistant User?         @relation("AssistantCases", fields: [assistantId], references: [id])
+
+  documents     Document[]
+  appointments  Appointment[]
+  activities    Activity[]
+  petitions     Petition[]
+  payments      Payment[]
+  notifications Notification[]
 
   @@map("cases")
 }
@@ -205,23 +219,24 @@ enum DocumentType {
 }
 
 model Document {
-  id          String       @id @default(cuid())
-  name        String
-  type        DocumentType
-  filename    String       // Nome do arquivo no storage
-  size        Int          // Tamanho em bytes
-  mimeType    String
-  url         String       // URL do arquivo no S3/storage
-  
+  id       String       @id @default(cuid())
+  name     String
+  type     DocumentType
+  filename String // Nome do arquivo no storage
+  size     Int // Tamanho em bytes
+  mimeType String
+  url      String // URL do arquivo no S3/storage
+
   // Relacionamentos
-  caseId      String?
+  caseId       String?
   uploadedById String
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  case       Case? @relation(fields: [caseId], references: [id])
-  uploadedBy User  @relation(fields: [uploadedById], references: [id])
+  case          Case?          @relation(fields: [caseId], references: [id])
+  uploadedBy    User           @relation(fields: [uploadedById], references: [id])
+  notifications Notification[]
 
   @@map("documents")
 }
@@ -238,15 +253,15 @@ enum PetitionStatus {
 }
 
 model Petition {
-  id        String          @id @default(cuid())
-  title     String
-  content   String          // Conteúdo da petição gerada pela IA
-  prompt    String?         // Prompt usado para gerar a petição
-  status    PetitionStatus  @default(DRAFT)
-  
+  id      String         @id @default(cuid())
+  title   String
+  content String // Conteúdo da petição gerada pela IA
+  prompt  String? // Prompt usado para gerar a petição
+  status  PetitionStatus @default(DRAFT)
+
   // Relacionamentos
-  caseId    String
-  
+  caseId String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -280,24 +295,25 @@ model Appointment {
   description String?
   type        AppointmentType
   status      AppointmentStatus @default(SCHEDULED)
-  
+
   // Data e horário
-  startDate   DateTime
-  endDate     DateTime
-  
+  startDate DateTime
+  endDate   DateTime
+
   // Links para videoconferência
-  meetingUrl  String?           // Zoom, Google Meet, etc.
-  meetingId   String?
-  
+  meetingUrl String? // Zoom, Google Meet, etc.
+  meetingId  String?
+
   // Relacionamentos
-  caseId      String?
-  lawyerId    String
-  
+  caseId   String?
+  lawyerId String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  case   Case? @relation(fields: [caseId], references: [id])
-  lawyer User  @relation(fields: [lawyerId], references: [id])
+  case          Case?          @relation(fields: [caseId], references: [id])
+  lawyer        User           @relation(fields: [lawyerId], references: [id])
+  notifications Notification[]
 
   @@map("appointments")
 }
@@ -325,17 +341,17 @@ model Payment {
   type        PaymentType
   status      PaymentStatus @default(PENDING)
   description String?
-  
+
   // Datas
-  dueDate     DateTime
-  paidDate    DateTime?
-  
+  dueDate  DateTime
+  paidDate DateTime?
+
   // Stripe integration
   stripePaymentId String?
-  
+
   // Relacionamentos  
-  caseId      String
-  
+  caseId String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -364,12 +380,12 @@ model Activity {
   type        ActivityType
   title       String
   description String?
-  metadata    Json?        // Dados adicionais em JSON
-  
+  metadata    Json? // Dados adicionais em JSON
+
   // Relacionamentos
-  userId      String
-  caseId      String?
-  
+  userId String
+  caseId String?
+
   createdAt DateTime @default(now())
 
   user User  @relation(fields: [userId], references: [id])
@@ -383,19 +399,71 @@ model Activity {
 // ================================
 
 model Message {
-  id       String  @id @default(cuid())
-  subject  String
-  content  String
-  isRead   Boolean @default(false)
-  
+  id      String  @id @default(cuid())
+  subject String
+  content String
+  isRead  Boolean @default(false)
+
   // Relacionamentos
-  senderId    String
-  receiverId  String
-  
+  senderId   String
+  receiverId String
+
   createdAt DateTime @default(now())
 
   sender   User @relation("SentMessages", fields: [senderId], references: [id])
   receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
 
   @@map("messages")
+}
+
+// ================================
+// MODELS DE NOTIFICAÇÕES
+// ================================
+
+enum NotificationType {
+  CASE_DEADLINE // Prazo de caso se aproximando
+  APPOINTMENT_REMINDER // Lembrete de compromisso
+  DOCUMENT_UPLOADED // Novo documento carregado
+  CASE_UPDATE // Atualização em caso
+  PAYMENT_DUE // Pagamento em atraso
+  SYSTEM_ANNOUNCEMENT // Anúncio do sistema
+  NEW_MESSAGE // Nova mensagem recebida
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Notification {
+  id       String               @id @default(cuid())
+  title    String
+  message  String
+  type     NotificationType
+  priority NotificationPriority @default(MEDIUM)
+  isRead   Boolean              @default(false)
+
+  // Metadata adicional (JSON)
+  metadata Json?
+
+  // URL para ação (opcional)
+  actionUrl String?
+
+  // Relacionamentos
+  userId        String
+  caseId        String?
+  documentId    String?
+  appointmentId String?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  case        Case?        @relation(fields: [caseId], references: [id], onDelete: SetNull)
+  document    Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
 }

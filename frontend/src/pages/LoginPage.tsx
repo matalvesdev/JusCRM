@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -81,13 +81,12 @@ export const LoginPage: React.FC = () => {
                         <div className="grid gap-2">
                             <div className="flex items-center">
                                 <Label htmlFor="password">Senha</Label>
-                                <button
-                                    type="button"
-                                    className="ml-auto inline-block text-sm underline"
-                                    onClick={() => {/* TODO: Implementar recuperação de senha */ }}
+                                <Link
+                                    to="/forgot-password"
+                                    className="ml-auto inline-block text-sm underline text-blue-600 hover:text-blue-800"
                                 >
                                     Esqueceu sua senha?
-                                </button>
+                                </Link>
                             </div>
                             <Input
                                 id="password"

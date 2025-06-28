@@ -6,6 +6,17 @@ import type {
   RegisterRequest,
   ApiResponse,
   User,
+  DashboardStats,
+  CasesByStatusChart,
+  UpcomingDeadline,
+  ClientProfile,
+  Case,
+  Document,
+  Appointment,
+  Activity,
+  PaginatedResponse,
+  Notification,
+  NotificationListResponse,
 } from "@/types";
 
 class ApiService {
@@ -44,7 +55,9 @@ class ApiService {
         console.error("[API] Erro no request interceptor:", error);
         return Promise.reject(error);
       }
-    ); // Interceptor para lidar com respostas
+    );
+
+    // Interceptor para lidar com respostas
     this.api.interceptors.response.use(
       (response: AxiosResponse) => {
         console.log("[API] Resposta recebida:", response.status, response.data);
@@ -88,6 +101,7 @@ class ApiService {
       }
     );
   }
+
   // Métodos de autenticação
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     console.log("[API] Tentando fazer login com:", credentials.email);
@@ -131,6 +145,52 @@ class ApiService {
     const data = "data" in response.data ? response.data.data : response.data;
     console.log("[API] Resposta do registro:", data);
     return data as LoginResponse;
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    console.log("[API] Solicitando recuperação de senha para:", email);
+    const response = await this.api.post<{ message: string }>(
+      "/auth/forgot-password",
+      { email }
+    );
+    console.log("[API] Resposta da recuperação de senha:", response.data);
+    return response.data;
+  }
+
+  async resetPassword(
+    token: string,
+    password: string
+  ): Promise<{ message: string }> {
+    console.log("[API] Redefinindo senha com token");
+    const response = await this.api.post<{ message: string }>(
+      "/auth/reset-password",
+      {
+        token,
+        password,
+      }
+    );
+    console.log("[API] Resposta da redefinição de senha:", response.data);
+    return response.data;
+  }
+
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    console.log("[API] Verificando email com token");
+    const response = await this.api.post<{ message: string }>(
+      "/auth/verify-email",
+      { token }
+    );
+    console.log("[API] Resposta da verificação de email:", response.data);
+    return response.data;
+  }
+
+  async resendVerification(email: string): Promise<{ message: string }> {
+    console.log("[API] Reenviando verificação de email para:", email);
+    const response = await this.api.post<{ message: string }>(
+      "/auth/resend-verification",
+      { email }
+    );
+    console.log("[API] Resposta do reenvio de verificação:", response.data);
+    return response.data;
   }
 
   // Métodos genéricos para CRUD
@@ -194,155 +254,558 @@ class ApiService {
     return responseData as T;
   }
 
-  // Métodos específicos para recursos
+  // ============ CLIENTES ============
 
-  // Usuários
-  async getUsers() {
-    return this.get("/users");
-  }
-  async createUser(userData: unknown) {
-    return this.post("/users", userData);
-  }
+  // Listar clientes com filtros
+  async getClients(
+    params: {
+      search?: string;
+      type?: "INDIVIDUAL" | "COMPANY";
+      city?: string;
+      state?: string;
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<PaginatedResponse<ClientProfile>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
 
-  async updateUser(id: string, userData: unknown) {
-    return this.put(`/users/${id}`, userData);
-  }
-
-  async deleteUser(id: string) {
-    return this.delete(`/users/${id}`);
-  }
-
-  // Clientes
-  async getClients() {
-    return this.get("/clients");
-  }
-
-  async getClient(id: string) {
-    return this.get(`/clients/${id}`);
-  }
-  async createClient(clientData: unknown) {
-    return this.post("/clients", clientData);
+    return this.get<PaginatedResponse<ClientProfile>>(
+      `/clients?${queryParams.toString()}`
+    );
   }
 
-  async updateClient(id: string, clientData: unknown) {
-    return this.put(`/clients/${id}`, clientData);
+  // Buscar cliente por ID
+  async getClient(id: string): Promise<ClientProfile> {
+    return this.get<ClientProfile>(`/clients/${id}`);
   }
 
-  async deleteClient(id: string) {
-    return this.delete(`/clients/${id}`);
+  // Criar novo cliente
+  async createClient(clientData: {
+    name: string;
+    email: string;
+    type?: "INDIVIDUAL" | "COMPANY";
+    cpf?: string;
+    rg?: string;
+    cnpj?: string;
+    birthDate?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    company?: string;
+    position?: string;
+    salary?: number;
+    workStart?: string;
+    workEnd?: string;
+  }): Promise<ApiResponse<{ client: ClientProfile }>> {
+    return this.post<ApiResponse<{ client: ClientProfile }>>(
+      "/clients",
+      clientData
+    );
   }
 
-  // Casos
-  async getCases() {
-    return this.get("/cases");
+  // Atualizar cliente
+  async updateClient(
+    id: string,
+    clientData: Partial<ClientProfile>
+  ): Promise<ApiResponse<{ client: ClientProfile }>> {
+    return this.put<ApiResponse<{ client: ClientProfile }>>(
+      `/clients/${id}`,
+      clientData
+    );
   }
 
-  async getCase(id: string) {
-    return this.get(`/cases/${id}`);
+  // Desativar cliente
+  async deleteClient(id: string): Promise<ApiResponse<void>> {
+    return this.delete<ApiResponse<void>>(`/clients/${id}`);
   }
 
-  async createCase(caseData: unknown) {
-    return this.post("/cases", caseData);
+  // Histórico do cliente
+  async getClientHistory(
+    id: string,
+    params: { page?: number; limit?: number } = {}
+  ): Promise<PaginatedResponse<Activity>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    return this.get<PaginatedResponse<Activity>>(
+      `/clients/${id}/history?${queryParams.toString()}`
+    );
   }
 
-  async updateCase(id: string, caseData: unknown) {
-    return this.put(`/cases/${id}`, caseData);
+  // ============ CASOS ============
+
+  // Listar casos com filtros
+  async getCases(
+    params: {
+      search?: string;
+      status?: "DRAFT" | "ACTIVE" | "SUSPENDED" | "CLOSED" | "ARCHIVED";
+      type?: string;
+      clientId?: string;
+      lawyerId?: string;
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<PaginatedResponse<Case>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    return this.get<PaginatedResponse<Case>>(
+      `/cases?${queryParams.toString()}`
+    );
   }
 
-  async deleteCase(id: string) {
-    return this.delete(`/cases/${id}`);
+  // Buscar caso por ID
+  async getCase(id: string): Promise<Case> {
+    return this.get<Case>(`/cases/${id}`);
   }
 
-  // Documentos
-  async getDocuments(caseId?: string, clientId?: string) {
-    let endpoint = "/documents";
-    const params = new URLSearchParams();
-    if (caseId) params.append("caseId", caseId);
-    if (clientId) params.append("clientId", clientId);
-    if (params.toString()) endpoint += `?${params.toString()}`;
-    return this.get(endpoint);
+  // Criar novo caso
+  async createCase(caseData: {
+    title: string;
+    description?: string;
+    type: string;
+    clientId: string;
+    assistantId?: string;
+    value?: number;
+    number?: string;
+  }): Promise<ApiResponse<{ case: Case }>> {
+    return this.post<ApiResponse<{ case: Case }>>("/cases", caseData);
   }
 
-  async uploadDocument(formData: FormData) {
-    const response = await this.api.post("/documents", formData, {
+  // Atualizar caso
+  async updateCase(
+    id: string,
+    caseData: Partial<Case>
+  ): Promise<ApiResponse<{ case: Case }>> {
+    return this.put<ApiResponse<{ case: Case }>>(`/cases/${id}`, caseData);
+  }
+
+  // Atualizar status do caso
+  async updateCaseStatus(
+    id: string,
+    status: string
+  ): Promise<ApiResponse<{ case: Case }>> {
+    return this.api
+      .patch(`/cases/${id}/status`, { status })
+      .then((res) => res.data);
+  }
+
+  // Arquivar caso
+  async deleteCase(id: string): Promise<ApiResponse<void>> {
+    return this.delete<ApiResponse<void>>(`/cases/${id}`);
+  }
+
+  // Timeline do caso
+  async getCaseTimeline(
+    id: string,
+    params: { page?: number; limit?: number } = {}
+  ): Promise<PaginatedResponse<Activity>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    return this.get<PaginatedResponse<Activity>>(
+      `/cases/${id}/timeline?${queryParams.toString()}`
+    );
+  }
+
+  // ============ DOCUMENTOS ============
+
+  // Listar documentos com filtros
+  async getDocuments(
+    params: {
+      search?: string;
+      type?: string;
+      caseId?: string;
+      uploadedById?: string;
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<PaginatedResponse<Document>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    return this.get<PaginatedResponse<Document>>(
+      `/documents?${queryParams.toString()}`
+    );
+  }
+
+  // Buscar documento por ID
+  async getDocument(id: string): Promise<Document> {
+    return this.get<Document>(`/documents/${id}`);
+  }
+
+  // Upload de documento
+  async uploadDocument(
+    file: File,
+    data: {
+      name: string;
+      type: string;
+      caseId?: string;
+    }
+  ): Promise<ApiResponse<{ document: Document }>> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("name", data.name);
+    formData.append("type", data.type);
+    if (data.caseId) {
+      formData.append("caseId", data.caseId);
+    }
+
+    const response = await this.api.post("/documents/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
-    return response.data.data;
+    return response.data;
   }
 
-  async deleteDocument(id: string) {
-    return this.delete(`/documents/${id}`);
+  // Atualizar documento
+  async updateDocument(
+    id: string,
+    data: {
+      name?: string;
+      type?: string;
+      caseId?: string;
+    }
+  ): Promise<ApiResponse<{ document: Document }>> {
+    return this.put<ApiResponse<{ document: Document }>>(
+      `/documents/${id}`,
+      data
+    );
   }
 
-  // Petições
-  async getPetitions(caseId?: string) {
-    let endpoint = "/petitions";
-    if (caseId) endpoint += `?caseId=${caseId}`;
-    return this.get(endpoint);
-  }
-  async createPetition(petitionData: unknown) {
-    return this.post("/petitions", petitionData);
+  // Excluir documento
+  async deleteDocument(id: string): Promise<ApiResponse<void>> {
+    return this.delete<ApiResponse<void>>(`/documents/${id}`);
   }
 
-  async updatePetition(id: string, petitionData: unknown) {
-    return this.put(`/petitions/${id}`, petitionData);
+  // Download de documento
+  downloadDocument(filename: string): string {
+    return `${this.api.defaults.baseURL}/documents/${filename}/download`;
   }
 
-  async deletePetition(id: string) {
-    return this.delete(`/petitions/${id}`);
+  // Documentos de um caso
+  async getCaseDocuments(caseId: string): Promise<{ documents: Document[] }> {
+    return this.get<{ documents: Document[] }>(`/documents/case/${caseId}`);
   }
 
-  // Agendamentos
-  async getAppointments() {
-    return this.get("/appointments");
+  // ============ COMPROMISSOS ============
+
+  // Listar compromissos com filtros
+  async getAppointments(
+    params: {
+      search?: string;
+      type?: "HEARING" | "MEETING" | "DEADLINE" | "CALL";
+      status?:
+        | "SCHEDULED"
+        | "CONFIRMED"
+        | "COMPLETED"
+        | "CANCELLED"
+        | "RESCHEDULED";
+      caseId?: string;
+      lawyerId?: string;
+      startDate?: string;
+      endDate?: string;
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<PaginatedResponse<Appointment>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    return this.get<PaginatedResponse<Appointment>>(
+      `/appointments?${queryParams.toString()}`
+    );
   }
 
-  async createAppointment(appointmentData: unknown) {
-    return this.post("/appointments", appointmentData);
+  // Buscar compromisso por ID
+  async getAppointment(id: string): Promise<Appointment> {
+    return this.get<Appointment>(`/appointments/${id}`);
   }
 
-  async updateAppointment(id: string, appointmentData: unknown) {
-    return this.put(`/appointments/${id}`, appointmentData);
+  // Criar novo compromisso
+  async createAppointment(appointmentData: {
+    title: string;
+    description?: string;
+    type: "HEARING" | "MEETING" | "DEADLINE" | "CALL";
+    startDate: string;
+    endDate: string;
+    caseId?: string;
+    meetingUrl?: string;
+    meetingId?: string;
+  }): Promise<ApiResponse<{ appointment: Appointment }>> {
+    return this.post<ApiResponse<{ appointment: Appointment }>>(
+      "/appointments",
+      appointmentData
+    );
   }
 
-  async deleteAppointment(id: string) {
-    return this.delete(`/appointments/${id}`);
+  // Atualizar compromisso
+  async updateAppointment(
+    id: string,
+    appointmentData: Partial<Appointment>
+  ): Promise<ApiResponse<{ appointment: Appointment }>> {
+    return this.put<ApiResponse<{ appointment: Appointment }>>(
+      `/appointments/${id}`,
+      appointmentData
+    );
   }
 
-  // Pagamentos
-  async getPayments() {
-    return this.get("/payments");
+  // Atualizar status do compromisso
+  async updateAppointmentStatus(
+    id: string,
+    status: string
+  ): Promise<ApiResponse<{ appointment: Appointment }>> {
+    return this.api
+      .patch(`/appointments/${id}/status`, { status })
+      .then((res) => res.data);
   }
 
-  async createPayment(paymentData: unknown) {
-    return this.post("/payments", paymentData);
+  // Cancelar compromisso
+  async deleteAppointment(id: string): Promise<ApiResponse<void>> {
+    return this.delete<ApiResponse<void>>(`/appointments/${id}`);
   }
 
-  async updatePayment(id: string, paymentData: unknown) {
-    return this.put(`/payments/${id}`, paymentData);
+  // Calendário de compromissos
+  async getAppointmentsCalendar(
+    year: number,
+    month: number
+  ): Promise<{
+    year: number;
+    month: number;
+    appointments: Appointment[];
+  }> {
+    return this.get<{
+      year: number;
+      month: number;
+      appointments: Appointment[];
+    }>(`/appointments/calendar/${year}/${month}`);
   }
 
-  async deletePayment(id: string) {
-    return this.delete(`/payments/${id}`);
+  // Próximos compromissos
+  async getUpcomingAppointments(
+    days: number = 7
+  ): Promise<{ appointments: Appointment[] }> {
+    return this.get<{ appointments: Appointment[] }>(
+      `/appointments/upcoming?days=${days}`
+    );
   }
 
-  // Atividades
-  async getActivities() {
-    return this.get("/activities");
+  // ============ ATIVIDADES ============
+
+  // Listar atividades
+  async getActivities(
+    params: {
+      page?: number;
+      limit?: number;
+    } = {}
+  ): Promise<PaginatedResponse<Activity>> {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        queryParams.append(key, value.toString());
+      }
+    });
+
+    return this.get<PaginatedResponse<Activity>>(
+      `/activities?${queryParams.toString()}`
+    );
   }
 
-  async createActivity(activityData: unknown) {
-    return this.post("/activities", activityData);
+  // ============ DASHBOARD ============
+
+  // Estatísticas do dashboard
+  async getDashboardStats(): Promise<DashboardStats> {
+    console.log("[API] Buscando estatísticas do dashboard...");
+    return this.get<DashboardStats>("/dashboard/stats");
   }
 
-  async updateActivity(id: string, activityData: unknown) {
-    return this.put(`/activities/${id}`, activityData);
+  // Gráfico de casos por status
+  async getCasesByStatusChart(): Promise<CasesByStatusChart[]> {
+    console.log("[API] Buscando dados do gráfico de casos por status...");
+    return this.get<CasesByStatusChart[]>("/dashboard/charts/cases-by-status");
   }
 
-  async deleteActivity(id: string) {
-    return this.delete(`/activities/${id}`);
+  // Próximos prazos
+  async getUpcomingDeadlines(days: number = 7): Promise<UpcomingDeadline[]> {
+    console.log("[API] Buscando próximos prazos...");
+    return this.get<UpcomingDeadline[]>(
+      `/dashboard/upcoming-deadlines?days=${days}`
+    );
+  }
+
+  // ============ USUÁRIOS ============
+
+  // Métodos para usuários (admin)
+  async getUsers(): Promise<{ users: User[] }> {
+    return this.get("/users");
+  }
+
+  async createUser(
+    userData: RegisterRequest
+  ): Promise<ApiResponse<{ user: User }>> {
+    return this.post("/users", userData);
+  }
+
+  async updateUser(
+    id: string,
+    userData: Partial<User>
+  ): Promise<ApiResponse<{ user: User }>> {
+    return this.put(`/users/${id}`, userData);
+  }
+
+  async deleteUser(id: string): Promise<ApiResponse<void>> {
+    return this.delete(`/users/${id}`);
+  }
+
+  // ============ PERFIL ============
+
+  // Obter dados do perfil do usuário logado
+  async getProfile(): Promise<User> {
+    console.log("[API] Buscando dados do perfil...");
+    return this.get<User>("/profile");
+  }
+
+  // Atualizar dados do perfil
+  async updateProfile(profileData: {
+    name: string;
+    phone?: string;
+    address?: string;
+    bio?: string;
+  }): Promise<User> {
+    console.log("[API] Atualizando perfil...");
+    return this.put<User>("/profile", profileData);
+  }
+
+  // Alterar senha
+  async changePassword(passwordData: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ message: string }> {
+    console.log("[API] Alterando senha...");
+    return this.post<{ message: string }>(
+      "/profile/change-password",
+      passwordData
+    );
+  }
+
+  // Upload de avatar (placeholder)
+  async uploadAvatar(file: File): Promise<{ avatar: string; message: string }> {
+    console.log("[API] Fazendo upload de avatar...");
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    return this.api
+      .post("/profile/avatar", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => response.data);
+  }
+
+  // Obter atividades recentes
+  async getProfileActivities(limit: number = 10): Promise<Activity[]> {
+    console.log("[API] Buscando atividades do perfil...");
+    return this.get<Activity[]>(`/profile/activities?limit=${limit}`);
+  }
+
+  // ================================
+  // NOTIFICATIONS API
+  // ================================
+
+  // Obter notificações
+  async getNotifications(params?: {
+    page?: number;
+    limit?: number;
+    isRead?: boolean;
+    type?: string;
+    priority?: string;
+  }): Promise<NotificationListResponse> {
+    console.log("[API] Buscando notificações...");
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append("page", params.page.toString());
+    if (params?.limit) queryParams.append("limit", params.limit.toString());
+    if (params?.isRead !== undefined)
+      queryParams.append("isRead", params.isRead.toString());
+    if (params?.type) queryParams.append("type", params.type);
+    if (params?.priority) queryParams.append("priority", params.priority);
+
+    const url = `/notifications${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
+    return this.get<NotificationListResponse>(url);
+  }
+
+  // Obter contagem de notificações não lidas
+  async getUnreadNotificationsCount(): Promise<{ count: number }> {
+    console.log("[API] Buscando contagem de notificações não lidas...");
+    return this.get<{ count: number }>("/notifications/unread-count");
+  }
+
+  // Marcar notificação como lida
+  async markNotificationAsRead(id: string): Promise<Notification> {
+    console.log("[API] Marcando notificação como lida:", id);
+    return this.api
+      .put(`/notifications/${id}/read`)
+      .then((response) => response.data);
+  }
+
+  // Marcar todas as notificações como lidas
+  async markAllNotificationsAsRead(): Promise<{ updated: number }> {
+    console.log("[API] Marcando todas as notificações como lidas...");
+    return this.api
+      .put("/notifications/mark-all-read")
+      .then((response) => response.data);
+  }
+
+  // Criar notificação (admin only)
+  async createNotification(data: {
+    title: string;
+    message: string;
+    type: string;
+    priority?: string;
+    actionUrl?: string;
+    metadata?: Record<string, unknown>;
+    caseId?: string;
+    documentId?: string;
+    appointmentId?: string;
+  }): Promise<Notification> {
+    console.log("[API] Criando notificação...");
+    return this.post<Notification>("/notifications", data);
+  }
+
+  // Deletar notificação
+  async deleteNotification(id: string): Promise<void> {
+    console.log("[API] Deletando notificação:", id);
+    return this.api.delete(`/notifications/${id}`).then(() => void 0);
   }
 }
 

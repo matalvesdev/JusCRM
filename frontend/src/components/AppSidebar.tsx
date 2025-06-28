@@ -17,7 +17,9 @@ import {
     Calendar,
     CreditCard,
     Activity,
-    Settings
+    Settings,
+    User,
+    Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,10 +43,9 @@ const menuItems = [
         title: 'Documentos',
         url: '/app/documents',
         icon: FileText,
-    },
-    {
+    }, {
         title: 'Agenda',
-        url: '/app/appointments',
+        url: '/app/agenda',
         icon: Calendar,
     },
     {
@@ -56,6 +57,16 @@ const menuItems = [
         title: 'Atividades',
         url: '/app/activities',
         icon: Activity,
+    },
+    {
+        title: 'Perfil',
+        url: '/app/profile',
+        icon: User,
+    },
+    {
+        title: 'Notificações',
+        url: '/app/notifications',
+        icon: Bell,
     },
     {
         title: 'Configurações',

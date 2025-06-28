@@ -79,3 +79,39 @@ export const authPlugin: FastifyPluginAsyncTypebox = async (fastify) => {
     }
   );
 };
+
+// Middleware de autenticação para ser usado nas rotas
+export const requireAuth = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+) => {
+  try {
+    const token = request.headers.authorization?.replace("Bearer ", "");
+    if (!token) {
+      return reply.status(401).send({
+        error: {
+          message: "Token de acesso requerido",
+          code: "UNAUTHORIZED",
+        },
+      });
+    }
+
+    const decoded = await request.server.jwt.verify<{
+      userId: string;
+      role: string;
+    }>(token);
+
+    // Adicionar informações do usuário ao request
+    (request as any).user = {
+      id: decoded.userId,
+      role: decoded.role,
+    };
+  } catch (error) {
+    return reply.status(401).send({
+      error: {
+        message: "Token inválido",
+        code: "INVALID_TOKEN",
+      },
+    });
+  }
+};
