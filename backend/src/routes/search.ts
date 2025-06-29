@@ -3,14 +3,35 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { requireAuth } from "../plugins/auth";
 
-// Schema para busca
+// Tipos para o resultado da busca
+interface SearchResults {
+  clients: any[];
+  cases: any[];
+  documents: any[];
+  appointments: any[];
+}
+
+interface SearchMeta {
+  total: number;
+  query: string;
+  type: string;
+  executionTime: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+// Schema para busca com validações mais rigorosas
 const searchSchema = z.object({
-  query: z.string().min(1, "Query é obrigatória"),
+  query: z
+    .string()
+    .min(2, "Query deve ter pelo menos 2 caracteres")
+    .max(100, "Query muito longa"),
   type: z
     .enum(["ALL", "CLIENTS", "CASES", "DOCUMENTS", "APPOINTMENTS"])
     .default("ALL"),
-  limit: z.coerce.number().default(10),
-  page: z.coerce.number().default(1),
+  limit: z.coerce.number().min(1).max(50).default(10), // Limita para evitar sobrecarga
+  page: z.coerce.number().min(1).default(1),
 });
 
 export async function searchRoutes(app: FastifyInstance) {
@@ -25,14 +46,14 @@ export async function searchRoutes(app: FastifyInstance) {
         querystring: {
           type: "object",
           properties: {
-            query: { type: "string", minLength: 1 },
+            query: { type: "string", minLength: 2, maxLength: 100 },
             type: {
               type: "string",
               enum: ["ALL", "CLIENTS", "CASES", "DOCUMENTS", "APPOINTMENTS"],
               default: "ALL",
             },
-            limit: { type: "number", default: 10 },
-            page: { type: "number", default: 1 },
+            limit: { type: "number", minimum: 1, maximum: 50, default: 10 },
+            page: { type: "number", minimum: 1, default: 1 },
           },
           required: ["query"],
         },
@@ -61,6 +82,7 @@ export async function searchRoutes(app: FastifyInstance) {
                   executionTime: { type: "number" },
                   page: { type: "number" },
                   limit: { type: "number" },
+                  totalPages: { type: "number" },
                 },
               },
             },
@@ -87,163 +109,286 @@ export async function searchRoutes(app: FastifyInstance) {
       const offset = (page - 1) * limit;
 
       try {
-        const results: any = {
+        const results: SearchResults = {
           clients: [],
           cases: [],
           documents: [],
           appointments: [],
         };
 
-        // Buscar clientes
+        // Função auxiliar para sanitizar a query
+        const sanitizedQuery = query.trim().toLowerCase();
+
+        // Contadores para paginação correta
+        let totalClients = 0;
+        let totalCases = 0;
+        let totalDocuments = 0;
+        let totalAppointments = 0;
+
+        // Buscar clientes (com contagem total)
         if (type === "ALL" || type === "CLIENTS") {
-          results.clients = await prisma.user.findMany({
-            where: {
-              role: "CLIENT",
-              OR: [
-                { name: { contains: query, mode: "insensitive" } },
-                { email: { contains: query, mode: "insensitive" } },
-                {
-                  clientProfile: {
-                    OR: [
-                      { cpf: { contains: query, mode: "insensitive" } },
-                      { cnpj: { contains: query, mode: "insensitive" } },
-                      { phone: { contains: query, mode: "insensitive" } },
-                      { company: { contains: query, mode: "insensitive" } },
-                    ],
+          const clientSearchConditions = {
+            role: "CLIENT" as const,
+            isActive: true, // Apenas clientes ativos
+            OR: [
+              {
+                name: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                email: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                clientProfile: {
+                  OR: [
+                    {
+                      cpf: {
+                        contains: sanitizedQuery,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      cnpj: {
+                        contains: sanitizedQuery,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      phone: {
+                        contains: sanitizedQuery,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                    {
+                      company: {
+                        contains: sanitizedQuery,
+                        mode: "insensitive" as const,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          };
+
+          // Buscar resultados e contagem em paralelo
+          const [clientResults, clientCount] = await Promise.all([
+            prisma.user.findMany({
+              where: clientSearchConditions,
+              include: {
+                clientProfile: true,
+                _count: {
+                  select: {
+                    assignedCases: true,
                   },
                 },
-              ],
-            },
-            include: {
-              clientProfile: true,
-              _count: {
-                select: {
-                  assignedCases: true,
-                },
               },
-            },
-            take: limit,
-            skip: offset,
-          });
+              take: limit,
+              skip: offset,
+              orderBy: { name: "asc" },
+            }),
+            prisma.user.count({ where: clientSearchConditions }),
+          ]);
+
+          results.clients = clientResults;
+          totalClients = clientCount;
         }
 
-        // Buscar casos
+        // Buscar casos (com contagem total)
         if (type === "ALL" || type === "CASES") {
-          results.cases = await prisma.case.findMany({
-            where: {
-              OR: [
-                { title: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-                { number: { contains: query, mode: "insensitive" } },
-              ],
-            },
-            include: {
-              client: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
+          const caseSearchConditions = {
+            OR: [
+              {
+                title: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-              lawyer: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
+              {
+                description: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-              _count: {
-                select: {
-                  documents: true,
-                  appointments: true,
+              {
+                number: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-            },
-            take: limit,
-            skip: offset,
-          });
+            ],
+          };
+
+          const [caseResults, caseCount] = await Promise.all([
+            prisma.case.findMany({
+              where: caseSearchConditions,
+              include: {
+                client: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+                lawyer: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+                _count: {
+                  select: {
+                    documents: true,
+                    appointments: true,
+                  },
+                },
+              },
+              take: limit,
+              skip: offset,
+              orderBy: { updatedAt: "desc" },
+            }),
+            prisma.case.count({ where: caseSearchConditions }),
+          ]);
+
+          results.cases = caseResults;
+          totalCases = caseCount;
         }
 
-        // Buscar documentos
+        // Buscar documentos (com contagem total)
         if (type === "ALL" || type === "DOCUMENTS") {
-          results.documents = await prisma.document.findMany({
-            where: {
-              OR: [
-                { title: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-                { fileName: { contains: query, mode: "insensitive" } },
-              ],
-            },
-            include: {
-              case: {
-                select: {
-                  id: true,
-                  title: true,
-                  number: true,
+          const documentSearchConditions = {
+            OR: [
+              {
+                name: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-              uploadedBy: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
+              {
+                filename: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-            },
-            take: limit,
-            skip: offset,
-          });
+            ],
+          };
+
+          const [documentResults, documentCount] = await Promise.all([
+            prisma.document.findMany({
+              where: documentSearchConditions,
+              include: {
+                case: {
+                  select: {
+                    id: true,
+                    title: true,
+                    number: true,
+                  },
+                },
+                uploadedBy: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+              take: limit,
+              skip: offset,
+              orderBy: { createdAt: "desc" },
+            }),
+            prisma.document.count({ where: documentSearchConditions }),
+          ]);
+
+          results.documents = documentResults;
+          totalDocuments = documentCount;
         }
 
-        // Buscar compromissos
+        // Buscar compromissos (com contagem total)
         if (type === "ALL" || type === "APPOINTMENTS") {
-          results.appointments = await prisma.appointment.findMany({
-            where: {
-              OR: [
-                { title: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-                { location: { contains: query, mode: "insensitive" } },
-              ],
-            },
-            include: {
-              case: {
-                select: {
-                  id: true,
-                  title: true,
-                  number: true,
+          const appointmentSearchConditions = {
+            OR: [
+              {
+                title: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-              createdBy: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
+              {
+                description: {
+                  contains: sanitizedQuery,
+                  mode: "insensitive" as const,
                 },
               },
-            },
-            take: limit,
-            skip: offset,
-          });
+            ],
+          };
+
+          const [appointmentResults, appointmentCount] = await Promise.all([
+            prisma.appointment.findMany({
+              where: appointmentSearchConditions,
+              include: {
+                case: {
+                  select: {
+                    id: true,
+                    title: true,
+                    number: true,
+                  },
+                },
+                lawyer: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+              take: limit,
+              skip: offset,
+              orderBy: { startDate: "desc" },
+            }),
+            prisma.appointment.count({ where: appointmentSearchConditions }),
+          ]);
+
+          results.appointments = appointmentResults;
+          totalAppointments = appointmentCount;
         }
 
-        // Calcular totais
-        const total =
+        // Calcular totais corretos
+        const grandTotal =
+          totalClients + totalCases + totalDocuments + totalAppointments;
+        const currentPageTotal =
           results.clients.length +
           results.cases.length +
           results.documents.length +
           results.appointments.length;
+        const totalPages = Math.ceil(grandTotal / limit);
 
         const executionTime = Date.now() - startTime;
 
+        const meta: SearchMeta = {
+          total: grandTotal,
+          query,
+          type,
+          executionTime,
+          page,
+          limit,
+          totalPages,
+        };
+
         return reply.send({
           results,
-          meta: {
-            total,
-            query,
-            type,
-            executionTime,
-            page,
-            limit,
+          meta,
+          counts: {
+            clients: totalClients,
+            cases: totalCases,
+            documents: totalDocuments,
+            appointments: totalAppointments,
+            currentPage: currentPageTotal,
           },
         });
       } catch (error) {
@@ -299,8 +444,11 @@ export async function searchRoutes(app: FastifyInstance) {
     async (request, reply) => {
       // Validar query parameters
       const suggestionsSchema = z.object({
-        query: z.string().min(1),
-        limit: z.coerce.number().default(5),
+        query: z
+          .string()
+          .min(2, "Query deve ter pelo menos 2 caracteres")
+          .max(100),
+        limit: z.coerce.number().min(1).max(20).default(5), // Limita sugestões
       });
 
       const validationResult = suggestionsSchema.safeParse(request.query);
@@ -314,15 +462,23 @@ export async function searchRoutes(app: FastifyInstance) {
       }
 
       const { query, limit } = validationResult.data;
+      const sanitizedQuery = query.trim().toLowerCase();
 
       try {
-        const suggestions = [];
+        const suggestions: Array<{
+          id: string;
+          text: string;
+          type: string;
+          subtitle: string;
+          url: string;
+        }> = [];
 
         // Sugestões de clientes
         const clientSuggestions = await prisma.user.findMany({
           where: {
             role: "CLIENT",
-            name: { contains: query, mode: "insensitive" },
+            isActive: true,
+            name: { contains: sanitizedQuery, mode: "insensitive" },
           },
           select: {
             id: true,
@@ -330,6 +486,7 @@ export async function searchRoutes(app: FastifyInstance) {
             email: true,
           },
           take: Math.ceil(limit / 4),
+          orderBy: { name: "asc" },
         });
 
         suggestions.push(
@@ -346,8 +503,8 @@ export async function searchRoutes(app: FastifyInstance) {
         const caseSuggestions = await prisma.case.findMany({
           where: {
             OR: [
-              { title: { contains: query, mode: "insensitive" } },
-              { number: { contains: query, mode: "insensitive" } },
+              { title: { contains: sanitizedQuery, mode: "insensitive" } },
+              { number: { contains: sanitizedQuery, mode: "insensitive" } },
             ],
           },
           select: {
@@ -356,6 +513,7 @@ export async function searchRoutes(app: FastifyInstance) {
             number: true,
           },
           take: Math.ceil(limit / 4),
+          orderBy: { updatedAt: "desc" },
         });
 
         suggestions.push(
@@ -371,22 +529,26 @@ export async function searchRoutes(app: FastifyInstance) {
         // Sugestões de documentos
         const documentSuggestions = await prisma.document.findMany({
           where: {
-            title: { contains: query, mode: "insensitive" },
+            OR: [
+              { name: { contains: sanitizedQuery, mode: "insensitive" } },
+              { filename: { contains: sanitizedQuery, mode: "insensitive" } },
+            ],
           },
           select: {
             id: true,
-            title: true,
-            fileName: true,
+            name: true,
+            filename: true,
           },
           take: Math.ceil(limit / 4),
+          orderBy: { createdAt: "desc" },
         });
 
         suggestions.push(
           ...documentSuggestions.map((doc) => ({
             id: doc.id,
-            text: doc.title,
+            text: doc.name,
             type: "document",
-            subtitle: doc.fileName,
+            subtitle: doc.filename,
             url: `/app/documents/${doc.id}`,
           }))
         );

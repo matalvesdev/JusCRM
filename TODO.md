@@ -13,6 +13,10 @@
 - [x] **Interface responsiva** (shadcn/ui, componentes modernos)
 - [x] **Integração Frontend-Backend** (todas as APIs funcionando)
 - [x] **Banco de dados** (configurado com dados de teste)
+- [x] **Sistema de Notificações** (CRUD, contadores, interface completa)
+- [x] **Busca Global** (unificada, autocomplete, filtros por tipo)
+- [x] **Sistema de Relatórios** (CRUD, estatísticas, interface completa)
+- [x] **Sistema de Templates** (CRUD, variáveis, geração de documentos)
 
 ### Ambiente de Desenvolvimento
 
@@ -144,11 +148,11 @@
   - [ ] Envio automático de lembretes
   - [ ] Sistema de triggers automáticos
 
-### 5. Busca Avançada Global ⏳
+### 5. Busca Avançada Global ✅
 
 **Objetivo:** Facilitar encontrar informações em todo o sistema
 **Estimativa:** 2 semanas
-**Status:** EM ANDAMENTO
+**Status:** CONCLUÍDO
 
 - [x] **Backend Search**
 
@@ -157,58 +161,104 @@
   - [x] Busca em clientes, casos, documentos, compromissos
   - [x] Paginação e filtros por tipo
   - [x] Validação de schemas Fastify
-  - [ ] Indexação de conteúdo avançada
-  - [ ] Busca em texto de documentos (PDFs)
-  - [ ] Filtros avançados (data, status, etc.)
+  - [x] Tipagem TypeScript completa
+  - [ ] Indexação de conteúdo avançada (futuro)
+  - [ ] Busca em texto de documentos (PDFs) (futuro)
+  - [ ] Filtros avançados (data, status, etc.) (futuro)
 
-- [ ] **Frontend Search**
-  - [ ] Barra de busca global no header
-  - [ ] Autocomplete/suggestions em tempo real
-  - [ ] Filtros por tipo de conteúdo
-  - [ ] Página de resultados com paginação
-  - [ ] Histórico de buscas
-  - [ ] Destaque dos termos buscados
+- [x] **Frontend Search**
+  - [x] Componente GlobalSearch completo
+  - [x] Barra de busca global integrada no TopBar
+  - [x] Autocomplete/suggestions em tempo real
+  - [x] Filtros por tipo de conteúdo
+  - [x] Interface responsiva com dropdown de resultados
+  - [x] Destaque visual por tipo (ícones e badges)
+  - [x] Estados de loading e resultados vazios
+  - [x] Navegação por teclado (Enter/Escape)
+  - [ ] Página de resultados dedicada (futuro)
+  - [ ] Histórico de buscas (futuro)
 
 ---
 
 ## 🚀 FUNCIONALIDADES INTERMEDIÁRIAS
 
-### 6. Sistema de Relatórios
+### 6. Sistema de Relatórios ✅
 
 **Objetivo:** Gerar relatórios para análise de dados
 **Estimativa:** 2-3 semanas
+**Status:** CONCLUÍDO (Básico)
 
-- [ ] **Relatórios Backend**
+- [x] **Relatórios Backend**
 
-  - [ ] API para geração de relatórios
-  - [ ] Relatório de casos por período
-  - [ ] Relatório de produtividade
-  - [ ] Relatório de clientes
-  - [ ] Export para PDF/Excel
+  - [x] Modelo de relatórios no banco (tipos, formatos, status, relações)
+  - [x] API CRUD completa para relatórios (/api/reports)
+  - [x] Endpoint de estatísticas (/api/reports/stats)
+  - [x] Endpoint de download de relatórios (/api/reports/:id/download)
+  - [x] Validação de schemas Fastify e tipagem TypeScript
+  - [x] Autenticação e autorização completas
+  - [x] Estrutura preparada para geração assíncrona
+  - [x] Sistema de filtros e paginação
 
-- [ ] **Interface de Relatórios**
-  - [ ] Página de relatórios
-  - [ ] Seleção de período/filtros
-  - [ ] Preview antes do download
-  - [ ] Histórico de relatórios gerados
+- [x] **Interface de Relatórios**
 
-### 7. Sistema de Templates
+  - [x] Página de relatórios completa (/app/reports)
+  - [x] Dashboard com estatísticas visuais
+  - [x] Diálogo de criação de relatórios
+  - [x] Seleção de tipo, formato e período
+  - [x] Lista com filtros avançados
+  - [x] Interface de download e gerenciamento
+  - [x] Estados de loading e tratamento de erros
+  - [x] Integração com sidebar e navegação
+
+- [ ] **Próximas Melhorias (Futuro)**
+  - [ ] Implementar geração real de PDFs/Excel/CSV
+  - [ ] Sistema de filas para processamento em background
+  - [ ] Templates de relatórios personalizáveis
+  - [ ] Preview de relatórios antes do download
+  - [ ] Agendamento automático de relatórios
+  - [ ] Relatórios com gráficos e visualizações avançadas
+
+### 7. Sistema de Templates ✅
 
 **Objetivo:** Padronizar documentos e comunicações
 **Estimativa:** 2-3 semanas
+**Status:** CONCLUÍDO
 
-- [ ] **Templates Backend**
+- [x] **Templates Backend**
 
-  - [ ] Modelo de templates no banco
-  - [ ] API CRUD para templates
-  - [ ] Sistema de variáveis
-  - [ ] Versionamento de templates
+  - [x] Modelo de templates no banco
+  - [x] API CRUD para templates
+  - [x] Sistema de variáveis
+  - [x] Duplicação de templates
+  - [x] Geração de documentos
 
-- [ ] **Editor de Templates**
-  - [ ] Editor WYSIWYG
-  - [ ] Variáveis dinâmicas
-  - [ ] Preview em tempo real
-  - [ ] Templates pré-definidos
+- [x] **Frontend de Templates**
+  - [x] Interface de listagem
+  - [x] Formulário de criação/edição
+  - [x] Sistema de filtros e busca
+  - [x] Gestão de variáveis
+  - [x] Tags e categorização
+  - [x] Integração com sidebar e rotas
+
+**Funcionalidades Implementadas:**
+
+- CRUD completo de templates
+- Sistema de tipos (Petição, Contrato, etc.)
+- Categorias por área do direito
+- Variáveis dinâmicas personalizáveis
+- Tags para organização
+- Templates públicos/privados
+- Duplicação de templates
+- Geração simulada de documentos
+- Interface responsiva e moderna
+
+**Próximas Melhorias (Futuro):**
+
+- Editor WYSIWYG avançado
+- Preview em tempo real
+- Versionamento de templates
+- Templates mais dinâmicos
+- Integração com editor de documentos
 
 ### 8. Audit Trail e Logs
 

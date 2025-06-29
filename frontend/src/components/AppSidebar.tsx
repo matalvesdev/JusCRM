@@ -19,7 +19,9 @@ import {
     Activity,
     Settings,
     User,
-    Bell
+    Bell,
+    BarChart3,
+    FileType
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -67,6 +69,16 @@ const menuItems = [
         title: 'Notificações',
         url: '/app/notifications',
         icon: Bell,
+    },
+    {
+        title: 'Relatórios',
+        url: '/app/reports',
+        icon: BarChart3,
+    },
+    {
+        title: 'Templates',
+        url: '/app/templates',
+        icon: FileType,
     },
     {
         title: 'Configurações',

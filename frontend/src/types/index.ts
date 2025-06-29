@@ -355,3 +355,185 @@ export interface GlobalSearchResponse {
 export interface SearchSuggestionsResponse {
   suggestions: SearchSuggestion[];
 }
+
+// === RELATÓRIOS ===
+
+export type ReportType =
+  | "CASES_BY_PERIOD"
+  | "CASES_BY_STATUS"
+  | "CASES_BY_CLIENT"
+  | "CLIENT_ACTIVITY"
+  | "PRODUCTIVITY"
+  | "FINANCIAL"
+  | "CUSTOM";
+
+export type ReportFormat = "PDF" | "EXCEL" | "CSV" | "JSON";
+
+export type ReportStatus = "PENDING" | "GENERATING" | "COMPLETED" | "FAILED";
+
+export interface Report {
+  id: string;
+  title: string;
+  description?: string;
+  type: ReportType;
+  format: ReportFormat;
+  status: ReportStatus;
+  parameters?: Record<string, unknown>;
+  startDate?: string;
+  endDate?: string;
+  fileName?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  expiresAt?: string;
+  recordsCount?: number;
+  generatedAt?: string;
+  completedAt?: string;
+  downloadCount: number;
+  generatedById: string;
+  generatedBy?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReportRequest {
+  type: ReportType;
+  title: string;
+  description?: string;
+  format: ReportFormat;
+  parameters?: Record<string, unknown>;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface ReportListResponse {
+  data: Report[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+export interface ReportStats {
+  totalReports: number;
+  completedReports: number;
+  pendingReports: number;
+  failedReports: number;
+  byType: Array<{
+    type: ReportType;
+    count: number;
+  }>;
+}
+
+// === TEMPLATES ===
+
+export type TemplateType =
+  | "PETITION"
+  | "CONTRACT"
+  | "LETTER"
+  | "PROCURATION"
+  | "MOTION"
+  | "APPEAL"
+  | "AGREEMENT"
+  | "EMAIL"
+  | "NOTIFICATION"
+  | "OTHER";
+
+export type TemplateCategory =
+  | "LABOR_LAW"
+  | "CIVIL_LAW"
+  | "CORPORATE_LAW"
+  | "FAMILY_LAW"
+  | "CRIMINAL_LAW"
+  | "ADMINISTRATIVE"
+  | "GENERAL";
+
+export interface TemplateVariable {
+  name: string;
+  label: string;
+  type: "text" | "date" | "number" | "boolean" | "select";
+  required: boolean;
+  defaultValue?: string;
+  options?: string[]; // Para type: select
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  description?: string;
+  type: TemplateType;
+  category: TemplateCategory;
+  content: string;
+  variables?: TemplateVariable[];
+  isActive: boolean;
+  isPublic: boolean;
+  version: number;
+  usageCount: number;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface CreateTemplateRequest {
+  name: string;
+  description?: string;
+  type: TemplateType;
+  category: TemplateCategory;
+  content: string;
+  variables?: TemplateVariable[];
+  isPublic?: boolean;
+  tags?: string[];
+}
+
+export interface TemplateListResponse {
+  templates: Template[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+export interface TemplateStats {
+  total: number;
+  byType: Array<{
+    type: TemplateType;
+    count: number;
+  }>;
+  byCategory: Array<{
+    category: TemplateCategory;
+    count: number;
+  }>;
+  mostUsed: Array<{
+    id: string;
+    name: string;
+    usageCount: number;
+  }>;
+  recentlyCreated: Array<{
+    id: string;
+    name: string;
+    createdAt: string;
+  }>;
+}
+
+export interface GenerateDocumentRequest {
+  templateId: string;
+  variableValues: Record<string, string | number | boolean>;
+  documentName: string;
+  caseId?: string;
+}

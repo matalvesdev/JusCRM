@@ -6,11 +6,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 
 const loginSchema = z.object({
     email: z.string().email('Email inválido'),
     password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres'),
+    rememberMe: z.boolean().optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -47,7 +49,20 @@ export const LoginPage: React.FC = () => {
 
         } catch (err) {
             console.error('[LoginPage] Erro no login:', err);
-            setError('Email ou senha inválidos');
+            // Mensagens de erro melhoradas
+            if (err instanceof Error) {
+                if (err.message.includes('401') || err.message.includes('Unauthorized')) {
+                    setError('Email ou senha incorretos. Verifique suas credenciais e tente novamente.');
+                } else if (err.message.includes('network') || err.message.includes('fetch')) {
+                    setError('Erro de conexão. Verifique sua internet e tente novamente.');
+                } else if (err.message.includes('timeout')) {
+                    setError('Tempo limite excedido. Tente novamente em alguns instantes.');
+                } else {
+                    setError('Erro inesperado. Tente novamente ou contate o suporte.');
+                }
+            } else {
+                setError('Email ou senha incorretos. Verifique suas credenciais e tente novamente.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -97,6 +112,19 @@ export const LoginPage: React.FC = () => {
                             {errors.password && (
                                 <p className="text-sm text-red-500">{errors.password.message}</p>
                             )}
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                            <Checkbox
+                                id="rememberMe"
+                                {...register('rememberMe')}
+                            />
+                            <Label
+                                htmlFor="rememberMe"
+                                className="text-sm font-normal cursor-pointer"
+                            >
+                                Manter-me conectado por 30 dias
+                            </Label>
                         </div>
 
                         {error && (

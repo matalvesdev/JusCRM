@@ -28,6 +28,8 @@ import { dashboardRoutes } from "./routes/dashboard";
 import { profileRoutes } from "./routes/profile";
 import { notificationsRoutes } from "./routes/notifications";
 import { searchRoutes } from "./routes/search";
+import { reportRoutes } from "./routes/reports";
+import { templateRoutes } from "./routes/templates";
 
 const app = Fastify({
   logger:
@@ -150,6 +152,8 @@ async function bootstrap() {
     await app.register(profileRoutes, { prefix: "/api" });
     await app.register(notificationsRoutes, { prefix: "/api/notifications" });
     await app.register(searchRoutes, { prefix: "/api/search" });
+    await app.register(reportRoutes, { prefix: "/api/reports" });
+    await app.register(templateRoutes, { prefix: "/api/templates" });
 
     // Start server
     await app.listen({

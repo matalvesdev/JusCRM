@@ -8,7 +8,7 @@ interface AuthContextType {
     user: User | null;
     isLoading: boolean;
     isAuthenticated: boolean;
-    login: (credentials: LoginRequest) => Promise<void>;
+    login: (credentials: LoginRequest & { rememberMe?: boolean }) => Promise<void>;
     register: (userData: RegisterRequest) => Promise<void>;
     logout: () => void;
 }
@@ -39,10 +39,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('[AuthContext] Iniciando verificação de autenticação...');
             try {
                 const token = localStorage.getItem('auth_token');
+                const tokenDataStr = localStorage.getItem('auth_token_data');
                 console.log(`[AuthContext] Token encontrado: ${token ? 'Sim' : 'Não'}`);
 
-                if (token) {
+                if (token && tokenDataStr) {
+                    const tokenData = JSON.parse(tokenDataStr);
+                    const now = Date.now();
+
+                    // Verifica se o token expirou
+                    if (now > tokenData.expiresAt) {
+                        console.log('[AuthContext] Token expirado, removendo...');
+                        localStorage.removeItem('auth_token');
+                        localStorage.removeItem('auth_token_data');
+                        setUser(null);
+                        return;
+                    }
+
                     console.log('[AuthContext] Verificando token com a API...');
+                    const userData = await apiService.me();
+                    console.log('[AuthContext] Token válido. Usuário recebido:', userData);
+                    setUser(userData);
+                } else if (token) {
+                    // Token sem dados de expiração (compatibilidade)
+                    console.log('[AuthContext] Verificando token legado com a API...');
                     const userData = await apiService.me();
                     console.log('[AuthContext] Token válido. Usuário recebido:', userData);
                     setUser(userData);
@@ -62,13 +81,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         checkAuth();
     }, []);
 
-    const login = async (credentials: LoginRequest): Promise<void> => {
+    const login = async (credentials: LoginRequest & { rememberMe?: boolean }): Promise<void> => {
         console.log('[AuthContext] Tentando fazer login...', credentials);
         try {
             setIsLoading(true);
-            const response = await apiService.login(credentials);
+            const { rememberMe, ...loginData } = credentials;
+            const response = await apiService.login(loginData);
             console.log('[AuthContext] Login bem-sucedido. Resposta:', response);
+
+            // Define tempo de expiração baseado no remember me
+            const expirationTime = rememberMe
+                ? Date.now() + (30 * 24 * 60 * 60 * 1000) // 30 dias em ms
+                : Date.now() + (24 * 60 * 60 * 1000); // 24 horas em ms
+
+            const tokenData = {
+                token: response.accessToken,
+                expiresAt: expirationTime,
+                rememberMe: !!rememberMe
+            };
+
             localStorage.setItem('auth_token', response.accessToken);
+            localStorage.setItem('auth_token_data', JSON.stringify(tokenData));
             setUser(response.user);
         } catch (error) {
             console.error('[AuthContext] Falha no login:', error);
@@ -97,6 +130,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const logout = () => {
         console.log('[AuthContext] Fazendo logout...');
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_token_data');
         setUser(null);
         apiService.logout().catch(console.error);
     };

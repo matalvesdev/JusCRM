@@ -843,6 +843,155 @@ class ApiService {
       `/search/suggestions?${params}`
     );
   }
+
+  // === RELATÓRIOS ===
+
+  // Listar relatórios
+  async getReports(
+    params: {
+      page?: number;
+      limit?: number;
+      type?: "ALL" | import("@/types").ReportType;
+      status?: "ALL" | import("@/types").ReportStatus;
+    } = {}
+  ): Promise<import("@/types").ReportListResponse> {
+    console.log("[API] Listando relatórios:", params);
+    const searchParams = new URLSearchParams();
+
+    if (params.page) searchParams.append("page", params.page.toString());
+    if (params.limit) searchParams.append("limit", params.limit.toString());
+    if (params.type) searchParams.append("type", params.type);
+    if (params.status) searchParams.append("status", params.status);
+
+    return this.get<import("@/types").ReportListResponse>(
+      `/reports?${searchParams}`
+    );
+  }
+
+  // Criar relatório
+  async createReport(
+    data: import("@/types").CreateReportRequest
+  ): Promise<import("@/types").Report> {
+    console.log("[API] Criando relatório:", data);
+    return this.post<import("@/types").Report>("/reports", data);
+  }
+
+  // Obter detalhes de um relatório
+  async getReport(id: string): Promise<import("@/types").Report> {
+    console.log("[API] Buscando relatório:", id);
+    return this.get<import("@/types").Report>(`/reports/${id}`);
+  }
+
+  // Download de relatório
+  async downloadReport(id: string): Promise<Blob> {
+    console.log("[API] Fazendo download do relatório:", id);
+    const response = await this.api.get(`/reports/${id}/download`, {
+      responseType: "blob",
+    });
+    return response.data;
+  }
+
+  // Deletar relatório
+  async deleteReport(id: string): Promise<void> {
+    console.log("[API] Deletando relatório:", id);
+    return this.api.delete(`/reports/${id}`).then(() => void 0);
+  }
+
+  // Obter estatísticas dos relatórios
+  async getReportStats(): Promise<import("@/types").ReportStats> {
+    console.log("[API] Buscando estatísticas de relatórios...");
+    return this.get<import("@/types").ReportStats>("/reports/stats");
+  }
+
+  // === TEMPLATES ===
+
+  // Listar templates
+  async getTemplates(
+    params: {
+      page?: number;
+      limit?: number;
+      type?: "ALL" | import("@/types").TemplateType;
+      category?: "ALL" | import("@/types").TemplateCategory;
+      search?: string;
+      isPublic?: "ALL" | "true" | "false";
+      createdBy?: string;
+    } = {}
+  ): Promise<import("@/types").TemplateListResponse> {
+    console.log("[API] Listando templates:", params);
+    const searchParams = new URLSearchParams();
+
+    if (params.page) searchParams.append("page", params.page.toString());
+    if (params.limit) searchParams.append("limit", params.limit.toString());
+    if (params.type) searchParams.append("type", params.type);
+    if (params.category) searchParams.append("category", params.category);
+    if (params.search) searchParams.append("search", params.search);
+    if (params.isPublic) searchParams.append("isPublic", params.isPublic);
+    if (params.createdBy) searchParams.append("createdBy", params.createdBy);
+
+    return this.get<import("@/types").TemplateListResponse>(
+      `/templates?${searchParams}`
+    );
+  }
+
+  // Criar template
+  async createTemplate(
+    data: import("@/types").CreateTemplateRequest
+  ): Promise<import("@/types").Template> {
+    console.log("[API] Criando template:", data);
+    return this.post<import("@/types").Template>("/templates", data);
+  }
+
+  // Obter template por ID
+  async getTemplate(id: string): Promise<import("@/types").Template> {
+    console.log("[API] Buscando template:", id);
+    return this.get<import("@/types").Template>(`/templates/${id}`);
+  }
+
+  // Atualizar template
+  async updateTemplate(
+    id: string,
+    data: Partial<import("@/types").CreateTemplateRequest>
+  ): Promise<import("@/types").Template> {
+    console.log("[API] Atualizando template:", id, data);
+    return this.put<import("@/types").Template>(`/templates/${id}`, data);
+  }
+
+  // Deletar template
+  async deleteTemplate(id: string): Promise<void> {
+    console.log("[API] Deletando template:", id);
+    return this.api.delete(`/templates/${id}`).then(() => void 0);
+  }
+
+  // Duplicar template
+  async duplicateTemplate(
+    id: string,
+    name: string
+  ): Promise<import("@/types").Template> {
+    console.log("[API] Duplicando template:", id, name);
+    return this.post<import("@/types").Template>(`/templates/${id}/duplicate`, {
+      name,
+    });
+  }
+
+  // Gerar documento a partir de template
+  async generateDocument(
+    data: import("@/types").GenerateDocumentRequest
+  ): Promise<{
+    message: string;
+    document: { id: string; name: string; content: string };
+  }> {
+    console.log("[API] Gerando documento:", data);
+    return this.post<{
+      message: string;
+      document: { id: string; name: string; content: string };
+    }>(`/templates/${data.templateId}/generate`, data);
+  }
+
+  // Obter estatísticas dos templates
+  async getTemplateStats(): Promise<import("@/types").TemplateStats> {
+    console.log("[API] Buscando estatísticas de templates...");
+    return this.get<import("@/types").TemplateStats>("/templates/stats");
+  }
 }
 
 export const apiService = new ApiService();
@@ -864,6 +1013,20 @@ export const {
   markAllNotificationsAsRead,
   createNotification,
   deleteNotification,
+  getReports,
+  createReport,
+  getReport,
+  downloadReport,
+  deleteReport,
+  getReportStats,
+  getTemplates,
+  createTemplate,
+  getTemplate,
+  updateTemplate,
+  deleteTemplate,
+  duplicateTemplate,
+  generateDocument,
+  getTemplateStats,
 } = apiService;
 
 export default apiService;
