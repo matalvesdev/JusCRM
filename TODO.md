@@ -94,11 +94,11 @@
   - [x] Estados de loading
   - [x] Navegação no sidebar
 
-### 3. Melhorias na Autenticação ⏳
+### 3. Melhorias na Autenticação ✅
 
 **Objetivo:** Tornar o sistema mais seguro e user-friendly
 **Estimativa:** 1-2 semanas
-**Status:** EM ANDAMENTO
+**Status:** CONCLUÍDO
 
 - [x] **Recuperação de Senha**
 
@@ -116,10 +116,11 @@
   - [x] Reenvio de email (frontend)
   - [x] Integração completa
 
-- [ ] **Melhorias UX**
-  - [ ] Remember me checkbox
-  - [ ] Logout automático por inatividade
-  - [ ] Mensagens de erro melhoradas
+- [x] **Melhorias UX**
+  - [x] Remember me checkbox (implementado)
+  - [x] Logout automático por inatividade (hook 30min)
+  - [x] Mensagens de erro melhoradas
+  - [x] Expiração customizada do token (24h/30 dias)
 
 ### 4. Sistema de Notificações ✅
 
@@ -260,30 +261,56 @@
 - Templates mais dinâmicos
 - Integração com editor de documentos
 
-### 8. Audit Trail e Logs
+### 8. Audit Trail e Logs ✅
 
 **Objetivo:** Rastrear todas as ações do sistema
 **Estimativa:** 1-2 semanas
+**Status:** CONCLUÍDO
 
-- [ ] **Sistema de Auditoria**
-  - [ ] Log de todas as ações
-  - [ ] Rastreamento de mudanças
-  - [ ] Histórico por usuário
-  - [ ] Exportação de logs
+- [x] **Sistema de Auditoria**
+  - [x] Log de todas as ações (LOGIN, LOGOUT, CREATE, UPDATE, DELETE, DUPLICATE, GENERATE)
+  - [x] Rastreamento de mudanças (dados antes/depois)
+  - [x] Histórico por usuário (filtros por usuário, entidade, ação)
+  - [x] Exportação de logs (API de listagem com paginação)
+  - [x] API completa de auditoria (/api/audit, /api/audit/stats, /api/audit/:id)
+  - [x] Integração em autenticação e templates
+  - [x] Metadados completos (IP, User-Agent, timestamps)
+  - [x] Sistema extensível para todas as entidades
 
-### 9. Melhorias no Dashboard
+### 9. Melhorias no Dashboard ✅
 
 **Objetivo:** Tornar o dashboard mais informativo
 **Estimativa:** 1 semana
+**Status:** CONCLUÍDO
 
-- [ ] **Novos Widgets**
+- [x] **Novos Widgets**
 
-  - [ ] Gráfico de casos por tempo
-  - [ ] Top clientes por casos
-  - [ ] Prazos próximos do vencimento
-  - [ ] Atividades recentes
+  - [x] Gráfico de casos por tempo (timeline)
+  - [x] Top clientes por casos
+  - [x] Prazos próximos do vencimento
+  - [x] Atividades recentes melhoradas
+  - [x] Estatísticas de auditoria
 
-- [ ] **Customização**
+- [x] **Backend Endpoints**
+
+  - [x] `/api/dashboard/cases-timeline` - Timeline de casos por período
+  - [x] `/api/dashboard/top-clients` - Top clientes por número de casos
+  - [x] `/api/dashboard/upcoming-deadlines` - Prazos próximos detalhados
+  - [x] `/api/dashboard/recent-activities` - Atividades recentes com auditoria
+  - [x] `/api/dashboard/audit-stats` - Estatísticas de logs de auditoria
+  - [x] Correção de schema para usar `lawyerId` e `startDate` no modelo Appointment
+
+- [x] **Frontend Widgets**
+
+  - [x] Cards de estatísticas principais mantidos
+  - [x] Widget de timeline de casos com dados mensais
+  - [x] Widget de top clientes com ranking
+  - [x] Widget de atividades recentes integrado com auditoria
+  - [x] Widget de estatísticas de auditoria (ações, logins, etc.)
+  - [x] Interface responsiva e moderna
+  - [x] Integração com novos endpoints da API
+
+- [ ] **Customização (Futuro)**
   - [ ] Widgets configuráveis
   - [ ] Layout personalizável
   - [ ] Filtros por período

@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { prisma } from "../lib/prisma";
 import { sendPasswordResetEmail, sendEmailVerification } from "../lib/email";
+import { AuditService } from "../lib/audit";
 
 // Schemas de validação
 const LoginSchema = Type.Object({
@@ -107,6 +108,25 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
         const accessToken = fastify.jwt.sign(
           { userId: user.id, role: user.role },
           { expiresIn: "24h" }
+        );
+
+        // Atualizar lastLogin
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLogin: new Date() },
+        });
+
+        // Log de auditoria para login
+        await AuditService.logLogin(
+          { id: user.id, email: user.email, name: user.name },
+          {
+            role: user.role,
+            loginMethod: "email",
+          },
+          {
+            ip: request.ip,
+            headers: request.headers,
+          }
         );
 
         return reply.send({
@@ -667,6 +687,73 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
         return reply.send({
           message: "Email de verificação reenviado com sucesso",
+        });
+      } catch (error) {
+        fastify.log.error(error);
+        return reply.status(500).send({
+          error: {
+            message: "Erro interno do servidor",
+            code: "INTERNAL_ERROR",
+          },
+        });
+      }
+    }
+  );
+
+  // Logout
+  fastify.post(
+    "/logout",
+    {
+      preHandler: async (request, reply) => {
+        try {
+          await request.jwtVerify();
+        } catch (err) {
+          reply.status(401).send({
+            error: {
+              message: "Token inválido",
+              code: "INVALID_TOKEN",
+            },
+          });
+        }
+      },
+      schema: {
+        response: {
+          200: Type.Object({
+            message: Type.String(),
+          }),
+          401: Type.Object({
+            error: Type.Object({
+              message: Type.String(),
+              code: Type.String(),
+            }),
+          }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const user = request.user as any;
+
+        // Buscar dados completos do usuário para o log
+        const userData = await prisma.user.findUnique({
+          where: { id: user.userId },
+          select: { id: true, email: true, name: true },
+        });
+
+        if (userData) {
+          // Log de auditoria para logout
+          await AuditService.logLogout(
+            { id: userData.id, email: userData.email, name: userData.name },
+            {},
+            {
+              ip: request.ip,
+              headers: request.headers,
+            }
+          );
+        }
+
+        return reply.send({
+          message: "Logout realizado com sucesso",
         });
       } catch (error) {
         fastify.log.error(error);

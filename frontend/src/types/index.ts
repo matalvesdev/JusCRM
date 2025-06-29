@@ -269,6 +269,68 @@ export interface DashboardStats {
   recentActivities: Activity[];
 }
 
+// Novos tipos para widgets do dashboard
+export interface CasesTimelineData {
+  period: string;
+  total: number;
+  active: number;
+  closed: number;
+}
+
+export interface TopClient {
+  clientId: string;
+  clientName: string;
+  clientEmail: string;
+  totalCases: number;
+  activeCases: number;
+  closedCases: number;
+  lastCaseDate: string;
+}
+
+export interface UpcomingDeadlineData {
+  id: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  daysUntilDue: number;
+  priority: string;
+  type: string;
+  caseId: string;
+  caseTitle: string;
+  clientName: string;
+}
+
+export interface RecentActivity {
+  id: string;
+  type: string;
+  action: string;
+  title: string;
+  description: string;
+  entityType: string;
+  entityId: string;
+  entityName: string;
+  userId: string;
+  userName: string;
+  createdAt: string;
+  metadata?: any;
+}
+
+export interface AuditStats {
+  totalActions: number;
+  loginCount: number;
+  createCount: number;
+  updateCount: number;
+  deleteCount: number;
+  actionsByDay: Array<{
+    date: string;
+    count: number;
+  }>;
+  topActions: Array<{
+    action: string;
+    count: number;
+  }>;
+}
+
 export interface CasesByStatusChart {
   status: string;
   count: number;

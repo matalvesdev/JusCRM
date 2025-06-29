@@ -17,6 +17,11 @@ import type {
   PaginatedResponse,
   Notification,
   NotificationListResponse,
+  CasesTimelineData,
+  TopClient,
+  UpcomingDeadlineData,
+  RecentActivity,
+  AuditStats,
 } from "@/types";
 
 class ApiService {
@@ -661,6 +666,46 @@ class ApiService {
     );
   }
 
+  // Novos métodos para widgets do dashboard
+  async getCasesTimeline(
+    period: "week" | "month" | "quarter" | "year" = "month"
+  ): Promise<CasesTimelineData[]> {
+    console.log("[API] Buscando timeline de casos...");
+    return this.get<CasesTimelineData[]>(
+      `/dashboard/cases-timeline?period=${period}`
+    );
+  }
+
+  async getTopClients(limit: number = 10): Promise<TopClient[]> {
+    console.log("[API] Buscando top clientes...");
+    return this.get<TopClient[]>(`/dashboard/top-clients?limit=${limit}`);
+  }
+
+  async getUpcomingDeadlinesDetailed(
+    days: number = 30
+  ): Promise<UpcomingDeadlineData[]> {
+    console.log("[API] Buscando prazos próximos detalhados...");
+    return this.get<UpcomingDeadlineData[]>(
+      `/dashboard/upcoming-deadlines?days=${days}`
+    );
+  }
+
+  async getRecentActivities(
+    limit: number = 10,
+    includeAudit: boolean = true
+  ): Promise<RecentActivity[]> {
+    console.log("[API] Buscando atividades recentes...");
+    return this.get<RecentActivity[]>(
+      `/dashboard/recent-activities?limit=${limit}&includeAudit=${includeAudit}`
+    );
+  }
+
+  async getAuditStats(
+    period: "today" | "week" | "month" = "week"
+  ): Promise<AuditStats> {
+    console.log("[API] Buscando estatísticas de auditoria...");
+    return this.get<AuditStats>(`/dashboard/audit-stats?period=${period}`);
+  }
   // ============ USUÁRIOS ============
 
   // Métodos para usuários (admin)
@@ -1001,6 +1046,11 @@ export const {
   login,
   register,
   getDashboardStats,
+  getCasesTimeline,
+  getTopClients,
+  getUpcomingDeadlinesDetailed,
+  getRecentActivities,
+  getAuditStats,
   getClients,
   getCases,
   getDocuments,

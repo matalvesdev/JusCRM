@@ -69,6 +69,7 @@ model User {
   generatedReports Report[]
   createdTemplates Template[]     @relation("TemplateCreatedBy")
   updatedTemplates Template[]     @relation("TemplateUpdatedBy")
+  auditLogs        AuditLog[]
 
   @@map("users")
 }
@@ -598,6 +599,83 @@ model Template {
   documents   Document[]
 
   @@map("templates")
+}
+
+// ================================
+// SISTEMA DE AUDIT TRAIL E LOGS
+// ================================
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  VIEW
+  DOWNLOAD
+  EXPORT
+  UPLOAD
+  APPROVE
+  REJECT
+  ARCHIVE
+  RESTORE
+  SHARE
+  UNSHARE
+  DUPLICATE
+  GENERATE
+}
+
+enum AuditEntity {
+  USER
+  CLIENT
+  CASE
+  DOCUMENT
+  APPOINTMENT
+  ACTIVITY
+  NOTIFICATION
+  REPORT
+  TEMPLATE
+  SYSTEM
+}
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  
+  // Identificação da ação
+  action      AuditAction
+  entity      AuditEntity
+  entityId    String?     // ID do registro afetado
+  entityName  String?     // Nome/título do registro para referência
+  
+  // Usuário que executou a ação
+  userId      String
+  userEmail   String      // Para manter histórico mesmo se usuário for deletado
+  userName    String      // Para manter histórico mesmo se usuário for deletado
+  
+  // Detalhes da ação
+  description String?     // Descrição da ação
+  oldData     Json?       // Dados anteriores (para updates)
+  newData     Json?       // Dados novos (para creates/updates)
+  metadata    Json?       // Metadados adicionais (IP, user agent, etc.)
+  
+  // Informações técnicas
+  ipAddress   String?
+  userAgent   String?
+  
+  // Timestamp
+  createdAt   DateTime    @default(now())
+  
+  // Relacionamento com usuário
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Índices para performance
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([entity, action])
+  
+  @@map("audit_logs")
 }
 
 // Relacionamento adicional para Document

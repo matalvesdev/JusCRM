@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { requireAuth } from "../plugins/auth";
+import { AuditService } from "../lib/audit";
 
 // Schemas de validação
 const createTemplateSchema = z.object({
@@ -242,6 +243,17 @@ export async function templateRoutes(app: FastifyInstance) {
         },
       });
 
+      // Log de auditoria
+      await AuditService.logCreate(
+        "TEMPLATE",
+        template.id,
+        template.name,
+        template.createdBy,
+        template,
+        { type: template.type, category: template.category },
+        { ip: request.ip, headers: request.headers }
+      );
+
       return reply.status(201).send({
         message: "Template criado com sucesso",
         template,
@@ -302,6 +314,23 @@ export async function templateRoutes(app: FastifyInstance) {
         },
       });
 
+      // Log de auditoria
+      const currentUser = request.user as any;
+      await AuditService.logUpdate(
+        "TEMPLATE",
+        template.id,
+        template.name,
+        {
+          id: currentUser.id,
+          email: currentUser.email || "",
+          name: currentUser.name || "",
+        },
+        existingTemplate,
+        template,
+        { version: template.version },
+        { ip: request.ip, headers: request.headers }
+      );
+
       return reply.send({
         message: "Template atualizado com sucesso",
         template,
@@ -348,6 +377,22 @@ export async function templateRoutes(app: FastifyInstance) {
         where: { id },
         data: { isActive: false },
       });
+
+      // Log de auditoria
+      const currentUser = request.user as any;
+      await AuditService.logDelete(
+        "TEMPLATE",
+        existingTemplate.id,
+        existingTemplate.name,
+        {
+          id: currentUser.id,
+          email: currentUser.email || "",
+          name: currentUser.name || "",
+        },
+        existingTemplate,
+        { deletionType: "soft" },
+        { ip: request.ip, headers: request.headers }
+      );
 
       return reply.send({
         message: "Template excluído com sucesso",
@@ -412,6 +457,21 @@ export async function templateRoutes(app: FastifyInstance) {
         },
       });
 
+      // Log de auditoria para duplicação
+      await AuditService.logDuplicate(
+        "TEMPLATE",
+        originalTemplate.id,
+        originalTemplate.name,
+        duplicatedTemplate.id,
+        duplicatedTemplate.name,
+        duplicatedTemplate.createdBy,
+        {
+          originalType: originalTemplate.type,
+          originalCategory: originalTemplate.category,
+        },
+        { ip: request.ip, headers: request.headers }
+      );
+
       return reply.status(201).send({
         message: "Template duplicado com sucesso",
         template: duplicatedTemplate,
@@ -463,16 +523,42 @@ export async function templateRoutes(app: FastifyInstance) {
         data: { usageCount: template.usageCount + 1 },
       });
 
+      // Gerar dados do documento
+      const documentId = `doc_${Date.now()}`;
+      const documentName =
+        data.documentName ||
+        `${template.name} - ${new Date().toLocaleDateString()}`;
+
+      // Log de auditoria para geração
+      const currentUser = request.user as any;
+      await AuditService.logGenerate(
+        "DOCUMENT",
+        template.id,
+        template.name,
+        documentId,
+        documentName,
+        {
+          id: currentUser.id,
+          email: currentUser.email || "",
+          name: currentUser.name || "",
+        },
+        {
+          templateType: template.type,
+          templateCategory: template.category,
+          variablesUsed: Object.keys(data.variables).length,
+          templateUsageCount: template.usageCount + 1,
+        },
+        { ip: request.ip, headers: request.headers }
+      );
+
       // Aqui você salvaria o documento na base de dados se necessário
       // Por enquanto, apenas retornamos o conteúdo gerado
 
       return reply.send({
         message: "Documento gerado com sucesso",
         document: {
-          id: `doc_${Date.now()}`, // ID simulado
-          name:
-            data.documentName ||
-            `${template.name} - ${new Date().toLocaleDateString()}`,
+          id: documentId,
+          name: documentName,
           content,
         },
       });
