@@ -109,72 +109,83 @@ export const DashboardPage: React.FC = () => {
                 </div>
             </div>
         );
-    } return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                <p className="text-muted-foreground">
+    }
+
+    return (
+        <div className="space-y-8">
+            {/* Header Section */}
+            <div className="flex flex-col space-y-2">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+                <p className="text-lg text-gray-600">
                     Visão geral do seu escritório de advocacia
                 </p>
             </div>
 
-            {/* Cards de Estatísticas */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
+            {/* Cards de Estatísticas Principais */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-medium text-gray-700">
                             Total de Clientes
                         </CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                            <Users className="h-5 w-5 text-blue-600" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats?.totalClients || 0}</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-3xl font-bold text-gray-900">{stats?.totalClients || 0}</div>
+                        <p className="text-sm text-gray-600 mt-1">
                             Clientes cadastrados
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-medium text-gray-700">
                             Casos Ativos
                         </CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <div className="p-2 bg-green-100 rounded-lg">
+                            <Briefcase className="h-5 w-5 text-green-600" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats?.activeCases || 0}</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-3xl font-bold text-gray-900">{stats?.activeCases || 0}</div>
+                        <p className="text-sm text-gray-600 mt-1">
                             Casos em andamento
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-medium text-gray-700">
                             Documentos
                         </CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                            <FileText className="h-5 w-5 text-purple-600" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats?.totalDocuments || 0}</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-3xl font-bold text-gray-900">{stats?.totalDocuments || 0}</div>
+                        <p className="text-sm text-gray-600 mt-1">
                             Arquivos no sistema
                         </p>
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                        <CardTitle className="text-sm font-medium text-gray-700">
                             Próximos Prazos
                         </CardTitle>
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <div className="p-2 bg-orange-100 rounded-lg">
+                            <Calendar className="h-5 w-5 text-orange-600" />
+                        </div>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{upcomingDeadlines.length}</div>
-                        <p className="text-xs text-muted-foreground">
+                        <div className="text-3xl font-bold text-gray-900">{upcomingDeadlines.length}</div>
+                        <p className="text-sm text-gray-600 mt-1">
                             Nos próximos 7 dias
                         </p>
                     </CardContent>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { MainLayout } from '@/components/MainLayout';
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
@@ -34,6 +35,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    console.log('[ProtectedRoute] Usuário autenticado, renderizando conteúdo protegido');
-    return <>{children}</>;
+    console.log('[ProtectedRoute] Usuário autenticado, renderizando conteúdo protegido com MainLayout');
+    return (
+        <MainLayout>
+            {children}
+        </MainLayout>
+    );
 };
